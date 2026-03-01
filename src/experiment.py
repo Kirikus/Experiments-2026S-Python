@@ -44,27 +44,33 @@ class Experiment:
     
     #  Методы для работы с Variable 
     def add_variable(self, variable: 'Variable') -> None:
+        # Добавить переменную
         self._variables.append(variable)
-        # добавить переменную
+        
     
     def get_variables(self) -> List['Variable']:
+        # Получить список всех переменных
         return self._variables.copy()
-        # получить список всех переменных
+        
     
     # Методы для работы с Constant
     def add_constant(self, constant: 'Constant') -> None:
+        # Добавить константу в эксперимент
         self._constants.append(constant)
-        # добавить константу в эксперимент
+        
     
     def get_constants(self) -> List['Constant']:
+        # Получить список всех констант
         return self._constants.copy()
-        # получить список всех констант
+        
     
     # Методы для работы с Instrument 
     def add_instrument(self, instrument: 'Instrument') -> None:
+        # Добавить прибор в эксперимент
         self._instruments.append(instrument)
-        # добавить прибор в эксперимент
+        
     
     def get_instruments(self) -> List['Instrument']:
+        # Получить список всех приборов
         return self._instruments.copy()
-        # получить список всех приборов
+        
