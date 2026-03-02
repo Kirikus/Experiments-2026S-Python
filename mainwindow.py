@@ -5,22 +5,22 @@ from ui_mainwindow import Ui_MainWindow
 
 class MainWindow(QMainWindow):
     """
-    This is the GUI as a whole, which is displayed at startup.
+    Это GUI в целом, который отображается при запуске.
 
-    Designed using .ui file:
-    1. Create class.ui file
-    2. Convert class.ui file to ui_class.py file using commandline:
-    > pyside6-uic class.ui -o ui_class.py
-    3. Define a Class in python
-    4. Create Ui_Class in Class.__init__()
-    5. Afterwards, call setupUi
+    Спроектировано с использованием .ui файла:
+    1. Создать файл class.ui
+    2. Конвертировать файл class.ui в файл ui_class.py с помощью командной строки:
+       > pyside6-uic class.ui -o ui_class.py
+    3. Определить Класс в python
+    4. Создать Ui_Class в Class.__init__()
+    5. После этого, вызвать setupUi
 
-    If in doubt, create C++ Designer Form Class and look its structure!
+    Если сомневаешься — создай C++ Designer Form Class и посмотри на его структуру!
     """
 
     def __init__(self, parent: QWidget = None) -> None:
         """
-        parent: when parent is closed, this widget is also closed
+        parent: когда parent закрывается, этот виджет тоже закрывается
         """
         super().__init__(parent)
 
