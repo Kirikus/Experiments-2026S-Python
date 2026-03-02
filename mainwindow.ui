@@ -11,11 +11,115 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Обработка экспериментальных данных</string>
   </property>
+  
+  <!-- Центральный виджет с разделителем -->
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2"/>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    
+    <!-- Левая панель: дерево переменных/констант/приборов -->
+    <widget class="QTreeWidget" name="treeWidget">
+     <property name="maximumSize">
+      <size>
+       <width>200</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="headerLabel">
+      <string>Эксперимент</string>
+     </property>
+     <column>
+      <property name="text">
+       <string>Имя</string>
+      </property>
+     </column>
+    </widget>
+    
+    <!-- Правая панель: таблица данных -->
+    <widget class="QWidget" name="rightPanel">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      
+      <!-- Таблица значений -->
+      <widget class="QTableWidget" name="tableWidget">
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <column>
+        <property name="text">
+         <string>N</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Значение</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Погрешность</string>
+        </property>
+       </column>
+      </widget>
+      
+      <!-- Панель информации -->
+      <widget class="QGroupBox" name="infoGroup">
+       <property name="title">
+        <string>Информация</string>
+       </property>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelName">
+          <property name="text">
+           <string>Имя:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="valueName">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelType">
+          <property name="text">
+           <string>Тип:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="valueType">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="labelCount">
+          <property name="text">
+           <string>Количество:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="valueCount">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      
+     </layout>
+    </widget>
+    
+   </layout>
   </widget>
+  
+  <!-- Меню -->
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -25,8 +129,68 @@
      <height>19</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="actionNew"/>
+    <addaction name="actionOpen"/>
+    <addaction name="actionSave"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuExperiment">
+    <property name="title">
+     <string>Эксперимент</string>
+    </property>
+    <addaction name="actionAddVariable"/>
+    <addaction name="actionAddConstant"/>
+    <addaction name="actionAddInstrument"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuExperiment"/>
   </widget>
+  
+  <!-- Статусная строка -->
   <widget class="QStatusBar" name="statusbar"/>
+  
+  <!-- Действия -->
+  <action name="actionNew">
+   <property name="text">
+    <string>Новый</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Открыть...</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Сохранить</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+  </action>
+  <action name="actionAddVariable">
+   <property name="text">
+    <string>Добавить переменную</string>
+   </property>
+  </action>
+  <action name="actionAddConstant">
+   <property name="text">
+    <string>Добавить константу</string>
+   </property>
+  </action>
+  <action name="actionAddInstrument">
+   <property name="text">
+    <string>Добавить прибор</string>
+   </property>
+  </action>
+  
  </widget>
  <resources/>
  <connections/>
