@@ -68,5 +68,5 @@ class CSVHandler:
         # Получить путь к CSV файлу для переменной
         # Сохраняем в подпапку data/
         data_dir = experiment_dir / 'data'
-        data_dir.mkdir(exist_ok=True)
+        data_dir.mkdir(parents=True, exist_ok=True)
         return data_dir / f"{variable_name}.csv"
