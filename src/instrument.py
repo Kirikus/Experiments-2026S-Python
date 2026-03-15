@@ -3,105 +3,127 @@ Instrument classes for measurement error calculation.
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Optional
 
 
 class Instrument(ABC):
     """
     Абстрактный базовый класс для приборов измерения.
-    
+
     Хранит:
-    - QString name - имя прибора 
-    - double error_value - величина ошибки
+    - name: str — имя прибора
+    - error_value: float — величина ошибки
     """
-    
+
     def __init__(self, name: str, error_value: float) -> None:
+        """
+        Инициализировать прибор с именем и величиной ошибки.
+
+        :param name: Имя прибора.
+        :param error_value: Величина ошибки.
+        """
         self._name: str = name
         self._error_value: float = error_value
-    
+
     @property
     def name(self) -> str:
-        # Получить имя прибора
+        """Получить имя прибора."""
         return self._name
-    
+
     @name.setter
     def name(self, value: str) -> None:
-        # Установить имя прибора
+        """Установить имя прибора."""
         self._name = value
-    
+
     @property
     def error_value(self) -> float:
-        # Получить величину ошибки
+        """Получить базовую величину ошибки."""
         return self._error_value
-    
+
     @error_value.setter
     def error_value(self, value: float) -> None:
-        # Установить величину ошибки
+        """Установить базовую величину ошибки."""
         self._error_value = value
-    
+
     @abstractmethod
-    def get_error(self) -> float:
-        # Получить ошибку для расчётов (реализуется в наследниках)
-        pass
-    
-    @abstractmethod
-    def get_error_for_value(self, value: float) -> float:
-        # Получить ошибку для конкретного значения измерения
-        pass
+    def get_error(self, value: Optional[float] = None) -> float:
+        """
+        Получить погрешность прибора.
+
+        :param value: Измеренное значение. Если передано — ошибка считается
+                      относительно него (актуально для относительной погрешности).
+                      Если None — возвращается базовая ошибка прибора.
+        :return: Значение погрешности.
+        """
+        ...
 
 
 class InstrumentAbsolute(Instrument):
     """
-    Класс для приборов с абсолютной погрешностью.
-    
+    Прибор с абсолютной погрешностью.
+
     Линейка (±0.5 мм), секундомер (±0.01 с) и т.д.
     Ошибка постоянна и не зависит от измеряемого значения.
     """
-    
+
     def __init__(self, name: str, absolute_error: float) -> None:
-        # Инициализировать с абсолютной ошибкой
+        """
+        Инициализировать прибор с абсолютной погрешностью.
+
+        :param name: Имя прибора.
+        :param absolute_error: Абсолютная погрешность (одинаковая для всех значений).
+        """
         super().__init__(name, absolute_error)
-    
-    def get_error(self) -> float:
-        # Получить абсолютную ошибку (постоянная)
-        return self._error_value
-    
-    def get_error_for_value(self, value: float) -> float:
-        # Получить ошибку для значения (абсолютная = постоянная)
-        # Параметр value игнорируется для абсолютной погрешности
+
+    def get_error(self, value: Optional[float] = None) -> float:
+        """
+        Получить абсолютную погрешность.
+
+        Параметр value игнорируется — ошибка постоянна для всех измерений.
+
+        :param value: Не используется.
+        :return: Абсолютная погрешность.
+        """
         return self._error_value
 
 
 class InstrumentRelative(Instrument):
     """
-    Класс для приборов с относительной погрешностью.
-    
+    Прибор с относительной погрешностью.
+
     Мультиметр (±2%), весы (±0.1%) и т.д.
-    Ошибка зависит от измеряемого значения: Δ = value * (error% / 100)
+    Ошибка зависит от измеряемого значения: Δ = |value| × (error% / 100).
     """
-    
+
     def __init__(self, name: str, relative_error_percent: float) -> None:
-        # Инициализировать с относительной ошибкой в процентах
+        """
+        Инициализировать прибор с относительной погрешностью.
+
+        :param name: Имя прибора.
+        :param relative_error_percent: Относительная погрешность в процентах.
+        """
         super().__init__(name, relative_error_percent)
-        self._relative_error_percent: float = relative_error_percent
-    
+
     @property
     def relative_error_percent(self) -> float:
-        # Получить относительную ошибку в процентах
-        return self._relative_error_percent
-    
+        """Получить относительную погрешность в процентах."""
+        return self._error_value
+
     @relative_error_percent.setter
     def relative_error_percent(self, value: float) -> None:
-        # Установить относительную ошибку в процентах
-        self._relative_error_percent = value
+        """Установить относительную погрешность в процентах."""
         self._error_value = value
-    
-    def get_error(self) -> float:
-        # Получить относительную ошибку в процентах (без value)
-        # Для совместимости с базовым классом
-        return self._relative_error_percent
-    
-    def get_error_for_value(self, value: float) -> float:
-        # Получить абсолютную ошибку для конкретного значения
-        # Δ = value * (error% / 100)
-        return abs(value) * (self._relative_error_percent / 100.0)
+
+    def get_error(self, value: Optional[float] = None) -> float:
+        """
+        Получить погрешность.
+
+        Если value не передан — возвращает процент погрешности (базовое значение).
+        Если value передан — возвращает абсолютную погрешность: Δ = |value| × (error% / 100).
+
+        :param value: Измеренное значение. Если None — возвращается процент.
+        :return: Погрешность.
+        """
+        if value is None:
+            return self._error_value
+        return abs(value) * (self._error_value / 100.0)
