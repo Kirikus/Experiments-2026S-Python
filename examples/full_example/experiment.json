@@ -1,0 +1,49 @@
+{
+  "experiment": {
+    "variables": [
+      {
+        "name": "length",
+        "type": "measured",
+        "csv_file": "data/length.csv",
+        "instrument_name": "ruler"
+      },
+      {
+        "name": "mass",
+        "type": "measured",
+        "csv_file": "data/mass.csv",
+        "instrument_name": "scale"
+      },
+      {
+        "name": "density",
+        "type": "calculated",
+        "csv_file": "data/density.csv"
+      }
+    ],
+    "constants": [
+      {
+        "name": "g",
+        "value": 9.81,
+        "error": 0.01,
+        "readonly": false
+      },
+      {
+        "name": "pi",
+        "value": 3.1415926535,
+        "error": 0.0,
+        "readonly": true
+      }
+    ],
+    "instruments": [
+      {
+        "name": "ruler",
+        "type": "absolute",
+        "error_value": 0.001
+      },
+      {
+        "name": "scale",
+        "type": "relative",
+        "error_value": 0.5
+      }
+    ]
+  }
+}
