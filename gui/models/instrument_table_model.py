@@ -6,22 +6,27 @@ from src import Experiment, InstrumentAbsolute, InstrumentRelative
 
 
 class InstrumentTableModel(QAbstractTableModel):
+    # Модель таблицы для отображения и редактирования приборов в эксперименте
     def __init__(self, experiment: Experiment) -> None:
+        # Инициализация модели, установка эксперимента и заголовков столбцов
         super().__init__()
         self._experiment = experiment
         self._headers = ["Имя", "Тип погрешности", "Величина"]
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
+        # Возвращает количество строк (приборов) в таблице
         if parent.isValid():
             return 0
         return len(self._experiment.get_instruments())
 
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
+        # Возвращает количество столбцов в таблице
         if parent.isValid():
             return 0
         return 3
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+        # Возвращает данные для отображения или редактирования в ячейке таблицы
         if not index.isValid() or role not in (Qt.DisplayRole, Qt.EditRole):
             return None
 
@@ -35,6 +40,7 @@ class InstrumentTableModel(QAbstractTableModel):
         return None
 
     def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
+        # Устанавливает новые данные в ячейку таблицы (редактирование)
         if not index.isValid() or role != Qt.EditRole:
             return False
 
@@ -69,9 +75,11 @@ class InstrumentTableModel(QAbstractTableModel):
         return True
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+        # Возвращает флаги для ячейки (разрешает редактирование)
         return Qt.ItemIsEditable | super().flags(index)
 
     def headerData(
+        # Возвращает заголовки столбцов или строк
         self,
         section: int,
         orientation: Qt.Orientation,
@@ -85,6 +93,7 @@ class InstrumentTableModel(QAbstractTableModel):
         return str(section + 1)
 
     def setHeaderData(
+        # Позволяет редактировать заголовки столбцов
         self,
         section: int,
         orientation: Qt.Orientation,
@@ -101,5 +110,6 @@ class InstrumentTableModel(QAbstractTableModel):
         return True
 
     def refresh(self) -> None:
+        # Обновляет данные модели (перерисовывает таблицу)
         self.beginResetModel()
         self.endResetModel()
