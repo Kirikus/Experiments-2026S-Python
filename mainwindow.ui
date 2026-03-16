@@ -73,25 +73,10 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayoutInstruments">
            <item>
-            <widget class="QTableWidget" name="tableInstruments">
+            <widget class="QTableView" name="tableInstruments">
              <property name="alternatingRowColors">
               <bool>true</bool>
              </property>
-             <column>
-              <property name="text">
-            <string>Имя</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-            <string>Тип погрешности</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-            <string>Величина</string>
-              </property>
-             </column>
             </widget>
            </item>
           </layout>
