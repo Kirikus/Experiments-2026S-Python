@@ -24,7 +24,9 @@ from src.serializers import ExperimentSerializer
 
 
 class MainController:
+    # Главный контроллер приложения, связывает модель, представление и обработку событий
     def __init__(self, window: MainWindow) -> None:
+        # Инициализация контроллера, установка модели, сигналов и начальное обновление дерева
         self.window = window
         self.experiment = Experiment.get_experiment()
 
@@ -36,6 +38,7 @@ class MainController:
         self.window.ui.statusbar.showMessage("Готово")
 
     def _setup_tree(self) -> None:
+        # Настройка дерева эксперимента (переменные, константы, приборы)
         tree = self.window.ui.treeExperiment
         self._vars_item = QTreeWidgetItem(["Переменные"])
         self._consts_item = QTreeWidgetItem(["Константы"])
@@ -47,10 +50,12 @@ class MainController:
         tree.expandAll()
 
     def _setup_models(self) -> None:
+        # Установка модели таблицы приборов
         self.instrument_table_model = InstrumentTableModel(self.experiment)
         self.window.ui.tableInstruments.setModel(self.instrument_table_model)
 
     def _connect_signals(self) -> None:
+        # Подключение сигналов интерфейса к обработчикам событий
         ui = self.window.ui
 
         ui.actionNew.triggered.connect(self._on_new)
@@ -65,6 +70,7 @@ class MainController:
         ui.treeExperiment.itemClicked.connect(self._on_tree_item_clicked)
 
     def _on_new(self) -> None:
+        # Обработчик создания нового эксперимента
         reply = QMessageBox.question(
             self.window, "Новый эксперимент", "Очистить текущий эксперимент?"
         )
@@ -74,6 +80,7 @@ class MainController:
             self.window.ui.statusbar.showMessage("Создан новый эксперимент")
 
     def _on_open(self) -> None:
+        # Обработчик открытия эксперимента из файла
         filename, _ = QFileDialog.getOpenFileName(
             self.window, "Открыть эксперимент", "", "JSON (*.json)"
         )
@@ -86,6 +93,7 @@ class MainController:
         self.window.ui.statusbar.showMessage(f"Загружен: {filename}")
 
     def _on_save(self) -> None:
+        # Обработчик сохранения эксперимента в файл
         filename, _ = QFileDialog.getSaveFileName(
             self.window, "Сохранить эксперимент", "", "JSON (*.json)"
         )
@@ -99,6 +107,7 @@ class MainController:
         self.window.ui.statusbar.showMessage(f"Сохранён: {filename}")
 
     def _on_add_variable(self) -> None:
+        # Обработчик добавления новой переменной
         name, ok = QInputDialog.getText(
             self.window, "Новая переменная", "Имя переменной:"
         )
@@ -118,6 +127,7 @@ class MainController:
         self.window.ui.statusbar.showMessage(f"Добавлена переменная: {name}")
 
     def _on_add_constant(self) -> None:
+        # Обработчик добавления новой константы
         name, ok = QInputDialog.getText(
             self.window, "Новая константа", "Имя константы:"
         )
@@ -147,6 +157,7 @@ class MainController:
         self.window.ui.statusbar.showMessage(f"Добавлена константа: {name}")
 
     def _on_add_instrument(self) -> None:
+        # Обработчик добавления нового прибора
         name, ok = QInputDialog.getText(self.window, "Новый прибор", "Имя прибора:")
         if not (ok and name):
             return
@@ -180,6 +191,7 @@ class MainController:
         self.window.ui.statusbar.showMessage(f"Добавлен прибор: {name}")
 
     def _on_tree_item_clicked(self, item, column) -> None:
+        # Обработчик клика по элементу дерева эксперимента
         text = item.text(0)
 
         for var in self.experiment.get_variables():
@@ -198,6 +210,7 @@ class MainController:
                 return
 
     def _show_variable(self, var) -> None:
+        # Отображение информации о переменной в интерфейсе
         ui = self.window.ui
         ui.valueName.setText(var.name)
         ui.valueType.setText("Измеренная" if isinstance(var, VariableMeasured) else "Вычисленная")
@@ -215,6 +228,7 @@ class MainController:
             table.setItem(i, 2, QTableWidgetItem(str(err)))
 
     def _show_constant(self, const: Constant) -> None:
+        # Отображение информации о константе в интерфейсе
         ui = self.window.ui
         ui.valueName.setText(const.name)
         ui.valueType.setText("Константа" + (" (readonly)" if const.readonly else ""))
@@ -226,6 +240,7 @@ class MainController:
         ui.tableValues.setItem(0, 2, QTableWidgetItem(str(const.error)))
 
     def _show_instrument(self, inst) -> None:
+        # Отображение информации о приборе в интерфейсе
         ui = self.window.ui
         ui.valueName.setText(inst.name)
         ui.valueType.setText(f"Прибор ({self._instrument_type_label(inst)})")
@@ -237,9 +252,11 @@ class MainController:
         ui.tableValues.setItem(0, 2, QTableWidgetItem(str(inst.error_value)))
 
     def _instrument_type_label(self, inst) -> str:
+        # Получение текстовой метки типа прибора
         return "абсолютная" if isinstance(inst, InstrumentAbsolute) else "относительная"
 
     def _refresh_tree(self) -> None:
+        # Обновление дерева эксперимента и таблицы приборов
         for item in (self._vars_item, self._consts_item, self._insts_item):
             item.takeChildren()
 
