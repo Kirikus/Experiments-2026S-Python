@@ -18,9 +18,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout,
     QHeaderView, QLabel, QMainWindow, QMenu,
-    QMenuBar, QSizePolicy, QStatusBar, QTableWidget,
-    QTableWidgetItem, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
-    QWidget)
+    QMenuBar, QSizePolicy, QStatusBar, QTableView,
+    QTableWidget, QTableWidgetItem, QTreeWidget, QTreeWidgetItem,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -74,15 +74,7 @@ class Ui_MainWindow(object):
         self.instrumentsGroup.setObjectName(u"instrumentsGroup")
         self.verticalLayoutInstruments = QVBoxLayout(self.instrumentsGroup)
         self.verticalLayoutInstruments.setObjectName(u"verticalLayoutInstruments")
-        self.tableInstruments = QTableWidget(self.instrumentsGroup)
-        if (self.tableInstruments.columnCount() < 3):
-            self.tableInstruments.setColumnCount(3)
-        __qtablewidgetitem3 = QTableWidgetItem()
-        self.tableInstruments.setHorizontalHeaderItem(0, __qtablewidgetitem3)
-        __qtablewidgetitem4 = QTableWidgetItem()
-        self.tableInstruments.setHorizontalHeaderItem(1, __qtablewidgetitem4)
-        __qtablewidgetitem5 = QTableWidgetItem()
-        self.tableInstruments.setHorizontalHeaderItem(2, __qtablewidgetitem5)
+        self.tableInstruments = QTableView(self.instrumentsGroup)
         self.tableInstruments.setObjectName(u"tableInstruments")
         self.tableInstruments.setAlternatingRowColors(True)
 
@@ -178,12 +170,6 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem2 = self.tableValues.horizontalHeaderItem(2)
         ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u044c", None));
         self.instrumentsGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0438\u0431\u043e\u0440\u044b", None))
-        ___qtablewidgetitem3 = self.tableInstruments.horizontalHeaderItem(0)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f", None));
-        ___qtablewidgetitem4 = self.tableInstruments.horizontalHeaderItem(1)
-        ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", u"\u0422\u0438\u043f \u043f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u0438", None));
-        ___qtablewidgetitem5 = self.tableInstruments.horizontalHeaderItem(2)
-        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"\u0412\u0435\u043b\u0438\u0447\u0438\u043d\u0430", None));
         self.infoGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f", None))
         self.labelName.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f:", None))
         self.valueName.setText(QCoreApplication.translate("MainWindow", u"-", None))
