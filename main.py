@@ -22,7 +22,7 @@ def main() -> None:
 
     # Показать окно
     mainwindow.show()
-    
+
     # Запустить цикл событий
     sys.exit(app.exec())
 

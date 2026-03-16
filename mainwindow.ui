@@ -21,7 +21,7 @@
     
     <!-- Левая панель: дерево переменных/констант/приборов -->
     <item>
-     <widget class="QTreeWidget" name="treeWidget">
+    <widget class="QTreeWidget" name="treeExperiment">
       <property name="maximumSize">
        <size>
         <width>200</width>
@@ -38,12 +38,12 @@
     
     <!-- Правая панель: таблица данных -->
     <item>
-     <widget class="QWidget" name="rightPanel">
-      <layout class="QVBoxLayout" name="verticalLayout">
+    <widget class="QWidget" name="rightPanel">
+     <layout class="QVBoxLayout" name="verticalLayoutRight">
        
        <!-- Таблица значений -->
        <item>
-        <widget class="QTableWidget" name="tableWidget">
+        <widget class="QTableWidget" name="tableValues">
          <property name="alternatingRowColors">
           <bool>true</bool>
          </property>
@@ -64,6 +64,39 @@
          </column>
         </widget>
        </item>
+
+        <!-- Таблица приборов -->
+        <item>
+         <widget class="QGroupBox" name="instrumentsGroup">
+          <property name="title">
+           <string>Приборы</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayoutInstruments">
+           <item>
+            <widget class="QTableWidget" name="tableInstruments">
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <column>
+              <property name="text">
+            <string>Имя</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+            <string>Тип погрешности</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+            <string>Величина</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
        
        <!-- Панель информации -->
        <item>
