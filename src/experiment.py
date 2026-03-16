@@ -80,3 +80,9 @@ class Experiment:
         Возвращает копию, чтобы внешний код не мог мутировать внутреннее состояние.
         """
         return self._instruments.copy()
+
+    def clear(self) -> None:
+        """Очистить все данные текущего эксперимента."""
+        self._variables.clear()
+        self._constants.clear()
+        self._instruments.clear()
