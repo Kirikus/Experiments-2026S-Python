@@ -35,7 +35,7 @@ class InstrumentTableModel(QAbstractTableModel):
         if role == Qt.UserRole:
             return instrument
         if role == Qt.UserRole + 1:
-            return "absolute" if isinstance(instrument, InstrumentAbsolute) else "relative"
+            return "Абсолютная" if isinstance(instrument, InstrumentAbsolute) else "относительная"
         if role not in (Qt.DisplayRole, Qt.EditRole):
             return None
 
@@ -46,9 +46,9 @@ class InstrumentTableModel(QAbstractTableModel):
                 # Определяем тип погрешности через match-case
                 match instrument:
                     case InstrumentAbsolute():
-                        return "absolute"
+                        return "Абсолютная"
                     case InstrumentRelative():
-                        return "relative"
+                        return "Относительная"
                     case _:
                         return "..."
             case 2:
