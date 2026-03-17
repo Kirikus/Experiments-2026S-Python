@@ -4,7 +4,6 @@ from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 from src import Experiment, InstrumentAbsolute, InstrumentRelative
 
-
 class InstrumentTableModel(QAbstractTableModel):
     # Модель таблицы для отображения и редактирования приборов в эксперименте
     def __init__(self, experiment: Experiment) -> None:
@@ -17,7 +16,8 @@ class InstrumentTableModel(QAbstractTableModel):
         # Возвращает количество строк (приборов) в таблице
         if parent.isValid():
             return 0
-        return len(self._experiment.get_instruments())
+        # Прямой доступ к данным, без копирования
+        return len(self._experiment._instruments)
 
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
         # Возвращает количество столбцов в таблице
@@ -30,46 +30,53 @@ class InstrumentTableModel(QAbstractTableModel):
         if not index.isValid() or role not in (Qt.DisplayRole, Qt.EditRole):
             return None
 
-        inst = self._experiment.get_instruments()[index.row()]
-        if index.column() == 0:
-            return inst.name
-        if index.column() == 1:
-            return "absolute" if isinstance(inst, InstrumentAbsolute) else "relative"
-        if index.column() == 2:
-            return str(inst.error_value)
-        return None
+        instrument = self._experiment._instruments[index.row()]
+        match index.column():
+            case 0:
+                return instrument.name
+            case 1:
+                # Определяем тип погрешности через match-case
+                match instrument:
+                    case InstrumentAbsolute():
+                        return "absolute"
+                    case InstrumentRelative():
+                        return "relative"
+                    case _:
+                        return "..."
+            case 2:
+                return str(instrument.error_value)
+            case _:
+                return None
 
     def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
         # Устанавливает новые данные в ячейку таблицы (редактирование)
         if not index.isValid() or role != Qt.EditRole:
             return False
 
-        instruments = self._experiment.get_instruments()
-        inst = instruments[index.row()]
+        instrument = self._experiment._instruments[index.row()]
 
-        if index.column() == 0:
-            inst.name = str(value)
-        elif index.column() == 1:
-            value_str = str(value).strip().lower()
-            if value_str in {"absolute", "абсолютная", "abs"}:
-                if not isinstance(inst, InstrumentAbsolute):
-                    self._experiment._instruments[index.row()] = InstrumentAbsolute(
-                        inst.name, inst.error_value
-                    )
-            elif value_str in {"relative", "относительная", "rel"}:
-                if not isinstance(inst, InstrumentRelative):
-                    self._experiment._instruments[index.row()] = InstrumentRelative(
-                        inst.name, inst.error_value
-                    )
-            else:
+        match index.column():
+            case 0:
+                instrument.name = str(value)
+            case 1:
+                value_str = str(value).strip().lower()
+                # match-case для смены типа прибора
+                match value_str:
+                    case "absolute" | "абсолютная" | "abs":
+                        if not isinstance(instrument, InstrumentAbsolute):
+                            self._experiment._instruments[index.row()] = InstrumentAbsolute(instrument.name, instrument.error_value)
+                    case "relative" | "относительная" | "rel":
+                        if not isinstance(instrument, InstrumentRelative):
+                            self._experiment._instruments[index.row()] = InstrumentRelative(instrument.name, instrument.error_value)
+                    case _:
+                        return False
+            case 2:
+                try:
+                    instrument.error_value = float(value)
+                except (TypeError, ValueError):
+                    return False
+            case _:
                 return False
-        elif index.column() == 2:
-            try:
-                inst.error_value = float(value)
-            except (TypeError, ValueError):
-                return False
-        else:
-            return False
 
         self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
         return True
@@ -91,23 +98,6 @@ class InstrumentTableModel(QAbstractTableModel):
         if orientation == Qt.Horizontal and 0 <= section < len(self._headers):
             return self._headers[section]
         return str(section + 1)
-
-    def setHeaderData(
-        # Позволяет редактировать заголовки столбцов
-        self,
-        section: int,
-        orientation: Qt.Orientation,
-        value,
-        role: int = Qt.EditRole,
-    ) -> bool:
-        if orientation != Qt.Horizontal or role != Qt.EditRole:
-            return False
-        if not 0 <= section < len(self._headers):
-            return False
-
-        self._headers[section] = str(value)
-        self.headerDataChanged.emit(orientation, section, section)
-        return True
 
     def refresh(self) -> None:
         # Обновляет данные модели (перерисовывает таблицу)
