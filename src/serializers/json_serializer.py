@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ..variable import VariableMeasured
+from ..variable import Variable
 
 if TYPE_CHECKING:
     from ..experiment import Experiment
@@ -43,20 +43,13 @@ class ExperimentSerializer:
 
         # Сохранить переменные
         for var in self._experiment.get_variables():
-            var_data = {
-                "name": var.name,
-                "type": self._get_variable_type(var),
-                "csv_file": None,
-            }
+            var_data = var.serialize()
+            var_data["csv_file"] = None
 
             # Сохранить данные в CSV
             csv_path = CSVHandler.get_csv_path(var.name, data_dir)
             CSVHandler.save_variable(var, csv_path)
             var_data["csv_file"] = str(csv_path.relative_to(data_dir.parent))
-
-            # Добавить ссылку на прибор для измеренных
-            if isinstance(var, VariableMeasured) and var.instrument:
-                var_data["instrument_name"] = var.instrument.name
 
             data["experiment"]["variables"].append(var_data)
 
@@ -117,7 +110,7 @@ class ExperimentSerializer:
 
         # Загрузить переменные
         for var_data in exp_data["variables"]:
-            var = self._create_variable(var_data, instruments)
+            var = Variable.deserialize(var_data, instruments)
 
             # Загрузить данные из CSV
             csv_path = base_dir / var_data["csv_file"]
@@ -125,16 +118,6 @@ class ExperimentSerializer:
             CSVHandler.load_variable(var, csv_path, measurement_type=measurement_type)
 
             self._experiment.add_variable(var)
-
-    def _get_variable_type(self, var: "Variable") -> str:
-        """Получить строковый тип переменной для сериализации."""
-        from ..variable import VariableMeasured, VariableCalculated
-
-        if isinstance(var, VariableMeasured):
-            return "measured"
-        elif isinstance(var, VariableCalculated):
-            return "calculated"
-        return "unknown"
 
     def _get_instrument_type(self, inst: "Instrument") -> str:
         """Получить строковый тип прибора для сериализации."""
@@ -159,19 +142,3 @@ class ExperimentSerializer:
             return InstrumentRelative(name, error_value)
         else:
             raise ValueError(f"Unknown instrument type: {data['type']}")
-
-    def _create_variable(self, data: dict, instruments: dict) -> "Variable":
-        """Создать переменную по данным JSON."""
-        from ..variable import VariableMeasured, VariableCalculated
-
-        name = data["name"]
-        var_type = data["type"]
-
-        if var_type == "measured":
-            inst_name = data.get("instrument_name")
-            instrument = instruments.get(inst_name) if inst_name else None
-            return VariableMeasured(name, instrument)
-        elif var_type == "calculated":
-            return VariableCalculated(name)
-        else:
-            raise ValueError(f"Unknown variable type: {var_type}")
