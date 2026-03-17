@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QMainWindow, QWidget
-
 from ui_mainwindow import Ui_MainWindow
+
+from PySide6.QtWidgets import QMainWindow, QWidget, QHeaderView
 from PySide6.QtCharts import QChart, QChartView, QLineSeries
 from PySide6.QtGui import QPainter
 
@@ -10,6 +10,11 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        # Растягиваем столбцы таблиц значений и приборов на всю ширину
+        self.ui.tableValues.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.ui.tableInstruments.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
         self.init_plot()
 
     def init_plot(self):
