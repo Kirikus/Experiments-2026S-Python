@@ -41,29 +41,53 @@
     <widget class="QWidget" name="rightPanel">
      <layout class="QVBoxLayout" name="verticalLayoutRight">
        
-       <!-- Таблица значений -->
-       <item>
-        <widget class="QTableWidget" name="tableValues">
-         <property name="alternatingRowColors">
-          <bool>true</bool>
+
+      <!-- Таблица значений -->
+      <item>
+       <widget class="QTableWidget" name="tableValues">
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <column>
+         <property name="text">
+          <string>N</string>
          </property>
-         <column>
-          <property name="text">
-           <string>N</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Значение</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Погрешность</string>
-          </property>
-         </column>
-        </widget>
-       </item>
+        </column>
+        <column>
+         <property name="text">
+          <string>Значение</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Погрешность</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+
+      <!-- График экспериментальных данных (QCustomPlot/QtChart/QGraphicsView) -->
+      <!-- Пробный график для проверки работы программы. В дальнейшем заменить на полноценный QCustomPlot или QtChart. -->
+      <item>
+       <widget class="QGroupBox" name="plotGroup">
+        <property name="title">
+         <string>График</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayoutPlot">
+         <item>
+           <widget class="QChartView" name="plotChartView">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>150</height>
+             </size>
+            </property>
+            <!-- Здесь отображается график экспериментальных данных через QtCharts (QChartView). Для теста работы программы можно строить простые графики. -->
+           </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
 
         <!-- Таблица приборов -->
         <item>
