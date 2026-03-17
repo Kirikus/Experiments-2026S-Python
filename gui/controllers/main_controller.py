@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QTreeWidgetItem,
 )
+from PySide6.QtCore import Qt
 
 from gui.models import InstrumentTableModel
 from gui.views import MainWindow
@@ -192,21 +193,19 @@ class MainController:
 
     def _on_tree_item_clicked(self, item, column) -> None:
         # Обработчик клика по элементу дерева эксперимента
-        text = item.text(0)
+        role_data = item.data(0, Qt.UserRole)
+        if role_data is None:
+            return
 
-        for var in self.experiment.get_variables():
-            if var.name == text:
-                self._show_variable(var)
-                return
-
-        for const in self.experiment.get_constants():
-            if const.name == text:
-                self._show_constant(const)
-                return
-
-        for inst in self.experiment.get_instruments():
-            if inst.name == text:
-                self._show_instrument(inst)
+        entity_type, entity = role_data
+        match entity_type:
+            case "variable":
+                self._show_variable(entity)
+            case "constant":
+                self._show_constant(entity)
+            case "instrument":
+                self._show_instrument(entity)
+            case _:
                 return
 
     def _show_variable(self, var) -> None:
@@ -261,11 +260,19 @@ class MainController:
             item.takeChildren()
 
         for var in self.experiment.get_variables():
-            self._vars_item.addChild(QTreeWidgetItem([var.name]))
+            variable_item = QTreeWidgetItem([var.name])
+            variable_item.setData(0, Qt.UserRole, ("variable", var))
+            self._vars_item.addChild(variable_item)
+
         for const in self.experiment.get_constants():
-            self._consts_item.addChild(QTreeWidgetItem([const.name]))
+            constant_item = QTreeWidgetItem([const.name])
+            constant_item.setData(0, Qt.UserRole, ("constant", const))
+            self._consts_item.addChild(constant_item)
+
         for inst in self.experiment.get_instruments():
-            self._insts_item.addChild(QTreeWidgetItem([inst.name]))
+            instrument_item = QTreeWidgetItem([inst.name])
+            instrument_item.setData(0, Qt.UserRole, ("instrument", inst))
+            self._insts_item.addChild(instrument_item)
 
         self.window.ui.treeExperiment.expandAll()
         self.instrument_table_model.refresh()

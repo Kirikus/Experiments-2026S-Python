@@ -27,10 +27,18 @@ class InstrumentTableModel(QAbstractTableModel):
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         # Возвращает данные для отображения или редактирования в ячейке таблицы
-        if not index.isValid() or role not in (Qt.DisplayRole, Qt.EditRole):
+        if not index.isValid():
             return None
 
         instrument = self._experiment._instruments[index.row()]
+
+        if role == Qt.UserRole:
+            return instrument
+        if role == Qt.UserRole + 1:
+            return "absolute" if isinstance(instrument, InstrumentAbsolute) else "relative"
+        if role not in (Qt.DisplayRole, Qt.EditRole):
+            return None
+
         match index.column():
             case 0:
                 return instrument.name
