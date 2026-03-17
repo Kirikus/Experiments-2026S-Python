@@ -1,0 +1,10 @@
+index,value,error,measurement_type
+0,1634.1463,15.0,density
+1,1592.0,20.0,density
+2,1612.9032,18.0,density
+0,0.123,0.001,length
+1,0.125,0.001,length
+2,0.124,0.001,length
+0,0.201,0.001005,mass
+1,0.199,0.000995,mass
+2,0.200,0.001,mass
