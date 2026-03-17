@@ -2,35 +2,20 @@
   "experiment": {
     "variables": [
       {
-        "name": "length",
+        "name": "measurements",
         "type": "measured",
-        "csv_file": "data/length.csv",
-        "instrument_name": "ruler"
-      },
-      {
-        "name": "mass",
-        "type": "measured",
-        "csv_file": "data/mass.csv",
-        "instrument_name": "scale"
-      },
-      {
-        "name": "density",
-        "type": "calculated",
-        "csv_file": "data/density.csv"
+        "csv_file": "data/measurements.csv",
+        "measurement_types": ["length", "mass", "density"]
       }
-    ],
-    "constants": [
-      {
-        "name": "g",
-        "value": 9.81,
-        "error": 0.01,
+    {
+      "data_file": "data/measurements.csv",
+      "description": "Объединённые измерения: плотность, длина, масса"
+    }
         "readonly": false
-      },
       {
-        "name": "pi",
-        "value": 3.1415926535,
-        "error": 0.0,
-        "readonly": true
+        "data_file": "data/measurements.csv",
+        "description": "Объединённые измерения: плотность, длина, масса"
+      }
       }
     ],
     "instruments": [

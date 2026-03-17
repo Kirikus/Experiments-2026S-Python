@@ -9,24 +9,19 @@
    - ссылки на CSV-файлы переменных.
 
 2. `CSV` — значения переменных (`Variable::values`) и ошибки по точкам.
-
-> Требование: данные `Variable::values` хранятся только в `.csv`.
-
 ## Структура примера
 
-- `experiment.json` — метаданные и ссылки на CSV;
-- `data/length.csv` — значения измеренной переменной `length`;
-- `data/mass.csv` — значения измеренной переменной `mass`;
-- `data/density.csv` — значения вычисленной переменной `density`.
+- `experiment.json` — метаданные и ссылка на объединённый CSV;
+- `data/measurements.csv` — значения всех переменных (`length`, `mass`, `density`) с типом измерения.
 
 ## Поддерживаемые поля в `experiment.json`
 
 ### `experiment.variables[]`
 
-- `name`: имя переменной;
-- `type`: `"measured" | "calculated"`;
+- `name`: имя переменной (например, "measurements");
+- `type`: "measured";
 - `csv_file`: путь к CSV относительно папки JSON;
-- `instrument_name`: имя прибора (только для `measured`, опционально).
+- `measurement_types`: список типов измерений (например, ["length", "mass", "density"]).
 
 ### `experiment.constants[]`
 
@@ -45,12 +40,13 @@
 
 ## Формат CSV
 
-Все CSV в этом примере имеют формат:
+Объединённый CSV имеет формат:
 
-`index,value,error`
+`index,value,error,measurement_type`
 
 - `index`: порядковый номер точки (0..N-1);
 - `value`: значение переменной;
-- `error`: погрешность точки.
+- `error`: погрешность точки;
+- `measurement_type`: тип измерения (например, "length", "mass", "density").
 
 Для измеренных переменных ошибка берётся от прибора, для вычисленных — из самой переменной.

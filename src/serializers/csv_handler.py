@@ -45,24 +45,28 @@ class CSVHandler:
                 writer.writerow([i, val, error_cell])
 
     @staticmethod
-    def load_variable(variable: "Variable", filepath: Path) -> None:
-        """Загрузить переменную из CSV-файла."""
+    def load_variable(variable: "Variable", filepath: Path, measurement_type: str = None) -> None:
+        """
+        Загрузить переменную из CSV-файла.
+        Если measurement_type указан, фильтрует строки по этому типу.
+        """
         values: List[float] = []
+        errors: List[float] = []
 
         if hasattr(variable, "errors"):
             variable.errors = []
 
         with open(filepath, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-
             for row in reader:
+                if measurement_type is not None:
+                    if row.get("measurement_type", "").strip() != measurement_type:
+                        continue
                 value_cell = (row.get("value") or "").strip()
                 if value_cell in {"", CSVHandler._MISSING_CELL}:
                     continue
-
                 val = float(value_cell)
                 values.append(val)
-
                 error_cell = (row.get("error") or "").strip()
                 if (
                     hasattr(variable, "add_error")
@@ -70,7 +74,6 @@ class CSVHandler:
                 ):
                     err = float(error_cell)
                     variable.add_error(err)
-
         variable.set_values(values)
 
     @staticmethod

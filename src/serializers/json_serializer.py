@@ -121,7 +121,8 @@ class ExperimentSerializer:
 
             # Загрузить данные из CSV
             csv_path = base_dir / var_data["csv_file"]
-            CSVHandler.load_variable(var, csv_path)
+            measurement_type = var_data.get("measurement_type")
+            CSVHandler.load_variable(var, csv_path, measurement_type=measurement_type)
 
             self._experiment.add_variable(var)
 
