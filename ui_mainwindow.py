@@ -8,6 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+from PySide6.QtCharts import QChartView
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
@@ -69,6 +70,19 @@ class Ui_MainWindow(object):
         self.tableValues.setAlternatingRowColors(True)
 
         self.verticalLayoutRight.addWidget(self.tableValues)
+
+        self.plotGroup = QGroupBox(self.rightPanel)
+        self.plotGroup.setObjectName(u"plotGroup")
+        self.verticalLayoutPlot = QVBoxLayout(self.plotGroup)
+        self.verticalLayoutPlot.setObjectName(u"verticalLayoutPlot")
+        self.plotChartView = QChartView(self.plotGroup)
+        self.plotChartView.setObjectName(u"plotChartView")
+        self.plotChartView.setMinimumSize(QSize(200, 150))
+
+        self.verticalLayoutPlot.addWidget(self.plotChartView)
+
+
+        self.verticalLayoutRight.addWidget(self.plotGroup)
 
         self.instrumentsGroup = QGroupBox(self.rightPanel)
         self.instrumentsGroup.setObjectName(u"instrumentsGroup")
@@ -169,6 +183,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435", None));
         ___qtablewidgetitem2 = self.tableValues.horizontalHeaderItem(2)
         ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u044c", None));
+        self.plotGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a", None))
         self.instrumentsGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0438\u0431\u043e\u0440\u044b", None))
         self.infoGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f", None))
         self.labelName.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f:", None))
