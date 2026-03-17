@@ -15,6 +15,10 @@ class MainWindow(QMainWindow):
         self.ui.tableValues.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.ui.tableInstruments.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        # Скрываем боковую нумерацию строк, чтобы не дублировать столбец N
+        self.ui.tableValues.verticalHeader().setVisible(False)
+        self.ui.tableInstruments.verticalHeader().setVisible(False)
+
         self.init_plot()
 
     def init_plot(self):
