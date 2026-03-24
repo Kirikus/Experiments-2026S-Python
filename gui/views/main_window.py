@@ -1,0 +1,40 @@
+from ui_mainwindow import Ui_MainWindow
+
+from PySide6.QtWidgets import QMainWindow, QWidget, QHeaderView
+from PySide6.QtCharts import QChart, QChartView, QLineSeries
+from PySide6.QtGui import QPainter
+
+
+class MainWindow(QMainWindow):
+    def __init__(self, parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+
+        # Растягиваем столбцы таблиц значений и приборов на всю ширину
+        self.ui.tableValues.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.ui.tableInstruments.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # Скрываем боковую нумерацию строк, чтобы не дублировать столбец N
+        self.ui.tableValues.verticalHeader().setVisible(False)
+        self.ui.tableInstruments.verticalHeader().setVisible(False)
+
+        self.init_plot()
+
+    def init_plot(self):
+        # Пример: создаём простой график (линейный график с тестовыми данными)
+        series = QLineSeries()
+        series.append(0, 0)
+        series.append(1, 1)
+        series.append(2, 0.5)
+        series.append(3, 1.5)
+        series.append(4, 1)
+
+        chart = QChart()
+        chart.addSeries(series)
+        chart.createDefaultAxes()
+        chart.setTitle("Пробный график (QtCharts)")
+
+        self.ui.plotChartView.setChart(chart)
+        self.ui.plotChartView.setRenderHint(QPainter.Antialiasing)
+        # Для дальнейшей работы: замените данные на реальные экспериментальные значения
