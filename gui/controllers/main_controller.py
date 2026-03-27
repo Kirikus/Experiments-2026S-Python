@@ -71,6 +71,15 @@ class MainController:
 
         ui.treeExperiment.itemClicked.connect(self._on_tree_item_clicked)
         ui.tableValues.itemChanged.connect(self._on_table_value_changed)
+        self.instrument_table_model.instrument_changed.connect(self._on_instrument_changed)
+
+    def _on_instrument_changed(self, instrument) -> None:
+        # Синхронизация UI после редактирования прибора в таблице приборов.
+        self._refresh_tree(refresh_instrument_model=False)
+
+        if isinstance(self._selected_variable, VariableMeasured):
+            if self._selected_variable.instrument is instrument:
+                self._show_variable(self._selected_variable)
 
     def _on_new(self) -> None:
         # Обработчик создания нового эксперимента
@@ -391,7 +400,7 @@ class MainController:
         # Получение текстовой метки типа прибора
         return "абсолютная" if isinstance(inst, InstrumentAbsolute) else "относительная"
 
-    def _refresh_tree(self) -> None:
+    def _refresh_tree(self, refresh_instrument_model: bool = True) -> None:
         # Обновление дерева эксперимента и таблицы приборов
         for item in (self._vars_item, self._consts_item, self._insts_item):
             item.takeChildren()
@@ -412,4 +421,5 @@ class MainController:
             self._insts_item.addChild(instrument_item)
 
         self.window.ui.treeExperiment.expandAll()
-        self.instrument_table_model.refresh()
+        if refresh_instrument_model:
+            self.instrument_table_model.refresh()

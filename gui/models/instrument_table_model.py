@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 
 from src import Experiment, InstrumentAbsolute, InstrumentRelative
 
 class InstrumentTableModel(QAbstractTableModel):
     # Модель таблицы для отображения и редактирования приборов в эксперименте
+    instrument_changed = Signal(object)
+
     def __init__(self, experiment: Experiment) -> None:
         # Инициализация модели, установка эксперимента и заголовков столбцов
         super().__init__()
@@ -62,6 +64,7 @@ class InstrumentTableModel(QAbstractTableModel):
             return False
 
         instrument = self._experiment._instruments[index.row()]
+        instrument_changed_ref = instrument
 
         match index.column():
             case 0:
@@ -72,10 +75,14 @@ class InstrumentTableModel(QAbstractTableModel):
                 match value_str:
                     case "absolute" | "абсолютная" | "abs":
                         if not isinstance(instrument, InstrumentAbsolute):
-                            self._experiment._instruments[index.row()] = InstrumentAbsolute(instrument.name, instrument.error_value)
+                            replacement = InstrumentAbsolute(instrument.name, instrument.error_value)
+                            self._experiment.replace_instrument(instrument, replacement)
+                            instrument_changed_ref = replacement
                     case "relative" | "относительная" | "rel":
                         if not isinstance(instrument, InstrumentRelative):
-                            self._experiment._instruments[index.row()] = InstrumentRelative(instrument.name, instrument.error_value)
+                            replacement = InstrumentRelative(instrument.name, instrument.error_value)
+                            self._experiment.replace_instrument(instrument, replacement)
+                            instrument_changed_ref = replacement
                     case _:
                         return False
             case 2:
@@ -87,6 +94,7 @@ class InstrumentTableModel(QAbstractTableModel):
                 return False
 
         self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
+        self.instrument_changed.emit(instrument_changed_ref)
         return True
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
