@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt
 
 from gui.models import InstrumentTableModel
 from gui.views import MainWindow
+from gui.views.plot_manager import PlotManager
 from src import (
     Constant,
     Experiment,
@@ -286,6 +287,19 @@ class MainController:
 
         table.blockSignals(False)
 
+        # Построить график переменной
+        self._plot_variable(var)
+
+    def _plot_variable(self, var) -> None:
+        # Построить график точечного графика для переменной
+        values = var.values
+        if not values:
+            self.window.plot_manager.clear()
+            return
+
+        title = f"График: {var.name}"
+        self.window.plot_manager.plot_scatter(values, title)
+
     def _on_table_value_changed(self, item: QTableWidgetItem) -> None:
         # Обработчик изменения таблицы значений для выбранной переменной
         if self._selected_variable is None:
@@ -370,6 +384,8 @@ class MainController:
         ui.tableValues.setItem(0, 1, QTableWidgetItem(value_text))
         ui.tableValues.setItem(0, 2, QTableWidgetItem(error_text))
 
+        self.window.plot_manager.clear()
+
     def _show_instrument(self, inst) -> None:
         # Отображение информации о приборе в интерфейсе
         self._selected_variable = None
@@ -382,6 +398,8 @@ class MainController:
         ui.tableValues.setItem(0, 0, QTableWidgetItem("1"))
         ui.tableValues.setItem(0, 1, QTableWidgetItem(self._instrument_type_label(inst)))
         ui.tableValues.setItem(0, 2, QTableWidgetItem(str(inst.error_value)))
+
+        self.window.plot_manager.clear()
 
     def _decimal_places_from_number(self, number: float) -> int:
         # Определяет количество знаков после запятой для согласованного отображения
