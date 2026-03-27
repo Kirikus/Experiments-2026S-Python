@@ -73,6 +73,23 @@ class Experiment:
         """Добавить прибор в эксперимент."""
         self._instruments.append(instrument)
 
+    def replace_instrument(self, old_instrument: "Instrument", new_instrument: "Instrument") -> None:
+        """Заменить прибор и перепривязать все измеряемые переменные к новому экземпляру."""
+        for index, instrument in enumerate(self._instruments):
+            if instrument is old_instrument:
+                self._instruments[index] = new_instrument
+                break
+        else:
+            raise ValueError("Instrument to replace was not found")
+
+        # Сохраняем реальную связь в бэкенде: все VariableMeasured должны ссылаться
+        # на актуальный объект прибора после его замены.
+        from .variable import VariableMeasured
+
+        for variable in self._variables:
+            if isinstance(variable, VariableMeasured) and variable.instrument is old_instrument:
+                variable.instrument = new_instrument
+
     def get_instruments(self) -> List["Instrument"]:
         """
         Получить копию списка всех приборов.
