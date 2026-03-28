@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Главное окно приложения для обработки экспериментальных данных -->
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -7,21 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1331</width>
+    <height>690</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Обработка экспериментальных данных</string>
   </property>
-  
-  <!-- Центральный виджет с разделителем -->
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
-    
-    <!-- Левая панель: дерево переменных/констант/приборов -->
     <item>
-    <widget class="QTreeWidget" name="treeExperiment">
+     <widget class="QTreeWidget" name="treeWidget">
       <property name="maximumSize">
        <size>
         <width>200</width>
@@ -33,152 +28,233 @@
         <string>Эксперимент</string>
        </property>
       </column>
+      <item>
+       <property name="text">
+        <string>Variables</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Length</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Mass</string>
+        </property>
+       </item>
+      </item>
+      <item>
+       <property name="text">
+        <string>Constants</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Instruments</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Graphs</string>
+       </property>
+      </item>
      </widget>
     </item>
-    
-    <!-- Правая панель: таблица данных -->
     <item>
-    <widget class="QWidget" name="rightPanel">
-     <layout class="QVBoxLayout" name="verticalLayoutRight">
-       
-
-      <!-- Таблица значений -->
+     <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QTableWidget" name="tableValues">
-        <property name="alternatingRowColors">
-         <bool>true</bool>
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="currentIndex">
+         <number>0</number>
         </property>
-        <column>
-         <property name="text">
-          <string>N</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Значение</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Погрешность</string>
-         </property>
-        </column>
-       </widget>
-      </item>
-
-      <!-- График экспериментальных данных (QCustomPlot/QtChart/QGraphicsView) -->
-      <!-- Пробный график для проверки работы программы. В дальнейшем заменить на полноценный QCustomPlot или QtChart. -->
-      <item>
-       <widget class="QGroupBox" name="plotGroup">
-        <property name="title">
-         <string>График</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayoutPlot">
-         <item>
-           <widget class="QChartView" name="plotChartView">
-            <property name="minimumSize">
-             <size>
-              <width>200</width>
-              <height>150</height>
-             </size>
+        <widget class="QWidget" name="tab_3">
+         <attribute name="title">
+          <string>Length</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QTableWidget" name="tableWidget">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
             </property>
-            <!-- Здесь отображается график экспериментальных данных через QtCharts (QChartView). Для теста работы программы можно строить простые графики. -->
-           </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-
-        <!-- Таблица приборов -->
-        <item>
-         <widget class="QGroupBox" name="instrumentsGroup">
-          <property name="title">
-           <string>Приборы</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayoutInstruments">
-           <item>
-            <widget class="QTableView" name="tableInstruments">
-             <property name="alternatingRowColors">
-              <bool>true</bool>
+            <column>
+             <property name="text">
+              <string>N</string>
              </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       
-       <!-- Панель информации -->
-       <item>
-        <widget class="QGroupBox" name="infoGroup">
-         <property name="title">
-          <string>Информация</string>
-         </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelName">
-            <property name="text">
-             <string>Имя:</string>
-            </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Значение</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Погрешность</string>
+             </property>
+            </column>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="valueName">
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_4">
+         <attribute name="title">
+          <string>Graph 1</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>-</string>
+             <string>График</string>
             </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelType">
-            <property name="text">
-             <string>Тип:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="valueType">
-            <property name="text">
-             <string>-</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelCount">
-            <property name="text">
-             <string>Количество:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="valueCount">
-            <property name="text">
-             <string>-</string>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
-       </item>
-       
-      </layout>
-     </widget>
+        <widget class="QWidget" name="tab_6">
+         <attribute name="title">
+          <string>Instruments</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>Приборы</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <widget class="QTableWidget" name="instrumentsTable">
+               <property name="alternatingRowColors">
+                <bool>true</bool>
+               </property>
+               <column>
+                <property name="text">
+                 <string>Название</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Тип</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Погрешность</string>
+                </property>
+               </column>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_5">
+         <attribute name="title">
+          <string>Constants</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QGroupBox" name="groupBox_2">
+            <property name="title">
+             <string>Константы</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QTableWidget" name="constantsTable">
+               <property name="alternatingRowColors">
+                <bool>true</bool>
+               </property>
+               <column>
+                <property name="text">
+                 <string>Название</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Значение</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Единицы</string>
+                </property>
+               </column>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="infoGroup">
+        <property name="title">
+         <string>Информация</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="labelName">
+           <property name="text">
+            <string>Имя:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="valueName">
+           <property name="text">
+            <string>-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelType">
+           <property name="text">
+            <string>Тип:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="valueType">
+           <property name="text">
+            <string>-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelCount">
+           <property name="text">
+            <string>Количество:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="valueCount">
+           <property name="text">
+            <string>-</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
     </item>
-    
    </layout>
   </widget>
-  
-  <!-- Меню -->
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>19</height>
+     <width>1331</width>
+     <height>25</height>
     </rect>
    </property>
-   
-   <!-- Меню Файл -->
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>Файл</string>
@@ -189,8 +265,6 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   
-   <!-- Меню Эксперимент -->
    <widget class="QMenu" name="menuExperiment">
     <property name="title">
      <string>Эксперимент</string>
@@ -199,15 +273,10 @@
     <addaction name="actionAddConstant"/>
     <addaction name="actionAddInstrument"/>
    </widget>
-   
    <addaction name="menuFile"/>
    <addaction name="menuExperiment"/>
   </widget>
-  
-  <!-- Статусная строка -->
   <widget class="QStatusBar" name="statusbar"/>
-  
-  <!-- Действия -->
   <action name="actionNew">
    <property name="text">
     <string>Новый</string>
@@ -243,7 +312,6 @@
     <string>Добавить прибор</string>
    </property>
   </action>
-  
  </widget>
  <resources/>
  <connections/>
