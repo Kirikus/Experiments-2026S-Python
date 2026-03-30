@@ -6,12 +6,11 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QInputDialog,
     QMessageBox,
-    QTableWidgetItem,
     QTreeWidgetItem,
 )
 from PySide6.QtCore import Qt
 
-from gui.models import InstrumentTableModel
+from gui.models import InstrumentTableModel, ValueTableModel
 from gui.views import MainWindow
 from gui.views.plot_manager import PlotManager
 from src import (
@@ -53,9 +52,12 @@ class MainController:
         tree.expandAll()
 
     def _setup_models(self) -> None:
-        # Установка модели таблицы приборов
+        # Установка моделей таблиц
         self.instrument_table_model = InstrumentTableModel(self.experiment)
         self.window.ui.tableInstruments.setModel(self.instrument_table_model)
+
+        self.value_table_model = ValueTableModel()
+        self.window.ui.tableValues.setModel(self.value_table_model)
 
     def _connect_signals(self) -> None:
         # Подключение сигналов интерфейса к обработчикам событий
@@ -71,16 +73,18 @@ class MainController:
         ui.actionAddInstrument.triggered.connect(self._on_add_instrument)
 
         ui.treeExperiment.itemClicked.connect(self._on_tree_item_clicked)
-        ui.tableValues.itemChanged.connect(self._on_table_value_changed)
-        self.instrument_table_model.instrument_changed.connect(self._on_instrument_changed)
+        self.value_table_model.modelReset.connect(self._on_values_model_changed)
+        self.instrument_table_model.dataChanged.connect(self._on_instruments_model_changed)
+        self.instrument_table_model.modelReset.connect(self._on_instruments_model_changed)
 
-    def _on_instrument_changed(self, instrument) -> None:
-        # Синхронизация UI после редактирования прибора в таблице приборов.
+    def _on_values_model_changed(self) -> None:
+        if isinstance(self._selected_variable, VariableMeasured | VariableCalculated):
+            self.window.ui.valueCount.setText(str(self._selected_variable.count()))
+            self._plot_variable(self._selected_variable)
+
+    def _on_instruments_model_changed(self, *_args) -> None:
         self._refresh_tree(refresh_instrument_model=False)
-
-        if isinstance(self._selected_variable, VariableMeasured):
-            if self._selected_variable.instrument is instrument:
-                self._show_variable(self._selected_variable)
+        self.value_table_model.refresh()
 
     def _on_new(self) -> None:
         # Обработчик создания нового эксперимента
@@ -251,41 +255,7 @@ class MainController:
         ui.valueName.setText(var.name)
         ui.valueType.setText("Измеренная" if isinstance(var, VariableMeasured) else "Вычисленная")
         ui.valueCount.setText(str(var.count()))
-
-        table = ui.tableValues
-        table.blockSignals(True)
-        table.setRowCount(var.count() + 1)
-
-        values = var.values
-        errors = var.get_errors()
-
-        for i, val in enumerate(values):
-            err = errors[i] if i < len(errors) else 0.0
-            decimal_places = self._decimal_places_from_number(err)
-            value_text = self._format_number_with_places(val, decimal_places)
-            error_text = self._format_number_with_places(err, decimal_places)
-
-            table.setItem(i, 0, QTableWidgetItem(str(i + 1)))
-            table.setItem(i, 1, QTableWidgetItem(value_text))
-            table.setItem(i, 2, QTableWidgetItem(error_text))
-
-        # Пустая строка для добавления нового значения
-        add_row = var.count()
-        table.setItem(add_row, 0, QTableWidgetItem(str(add_row + 1)))
-        table.setItem(add_row, 1, QTableWidgetItem(""))
-        table.setItem(add_row, 2, QTableWidgetItem(""))
-
-        # Колонка N и погрешность read-only для измеряемой переменной
-        for row in range(table.rowCount()):
-            index_item = table.item(row, 0)
-            if index_item is not None:
-                index_item.setFlags(index_item.flags() & ~Qt.ItemIsEditable)
-
-            error_item = table.item(row, 2)
-            if error_item is not None and isinstance(var, VariableMeasured):
-                error_item.setFlags(error_item.flags() & ~Qt.ItemIsEditable)
-
-        table.blockSignals(False)
+        self.value_table_model.set_entity("variable", var)
 
         # Построить график переменной
         self._plot_variable(var)
@@ -300,73 +270,6 @@ class MainController:
         title = f"График: {var.name}"
         self.window.plot_manager.plot_scatter(values, title)
 
-    def _on_table_value_changed(self, item: QTableWidgetItem) -> None:
-        # Обработчик изменения таблицы значений для выбранной переменной
-        if self._selected_variable is None:
-            return
-
-        row = item.row()
-        column = item.column()
-        variable = self._selected_variable
-
-        # Разрешаем ввод значений в колонке 1 и (для вычисляемых) ошибок в колонке 2
-        if column not in (1, 2):
-            return
-        if isinstance(variable, VariableMeasured) and column == 2:
-            return
-
-        text = (item.text() or "").strip()
-        values = variable.values
-        errors = variable.get_errors()
-
-        try:
-            if column == 1:
-                if text == "":
-                    if row < len(values):
-                        values.pop(row)
-                        if row < len(errors):
-                            errors.pop(row)
-                    else:
-                        return
-                else:
-                    number = float(text.replace(",", "."))
-                    if row < len(values):
-                        values[row] = number
-                    elif row == len(values):
-                        values.append(number)
-                    else:
-                        return
-
-                variable.set_values(values)
-                if isinstance(variable, VariableCalculated):
-                    # В вычисляемой переменной поддерживаем длину errors = длине values
-                    if len(errors) < len(values):
-                        errors.extend([0.0] * (len(values) - len(errors)))
-                    elif len(errors) > len(values):
-                        errors = errors[: len(values)]
-                    variable.errors = errors
-
-            elif column == 2 and isinstance(variable, VariableCalculated):
-                if text == "":
-                    number = 0.0
-                else:
-                    number = float(text.replace(",", "."))
-
-                if row >= len(values):
-                    return
-
-                if len(errors) < len(values):
-                    errors.extend([0.0] * (len(values) - len(errors)))
-                errors[row] = number
-                variable.errors = errors
-
-            self._show_variable(variable)
-            self.window.ui.valueCount.setText(str(variable.count()))
-
-        except ValueError:
-            QMessageBox.warning(self.window, "Ошибка", "Введите корректное число")
-            self._show_variable(variable)
-
     def _show_constant(self, const: Constant) -> None:
         # Отображение информации о константе в интерфейсе
         self._selected_variable = None
@@ -374,15 +277,7 @@ class MainController:
         ui.valueName.setText(const.name)
         ui.valueType.setText("Константа" + (" (readonly)" if const.readonly else ""))
         ui.valueCount.setText("1")
-
-        ui.tableValues.setRowCount(1)
-        decimal_places = self._decimal_places_from_number(const.error)
-        value_text = self._format_number_with_places(const.value, decimal_places)
-        error_text = self._format_number_with_places(const.error, decimal_places)
-
-        ui.tableValues.setItem(0, 0, QTableWidgetItem("1"))
-        ui.tableValues.setItem(0, 1, QTableWidgetItem(value_text))
-        ui.tableValues.setItem(0, 2, QTableWidgetItem(error_text))
+        self.value_table_model.set_entity("constant", const)
 
         self.window.plot_manager.clear()
 
@@ -393,26 +288,9 @@ class MainController:
         ui.valueName.setText(inst.name)
         ui.valueType.setText(f"Прибор ({self._instrument_type_label(inst)})")
         ui.valueCount.setText("1")
-
-        ui.tableValues.setRowCount(1)
-        ui.tableValues.setItem(0, 0, QTableWidgetItem("1"))
-        ui.tableValues.setItem(0, 1, QTableWidgetItem(self._instrument_type_label(inst)))
-        ui.tableValues.setItem(0, 2, QTableWidgetItem(str(inst.error_value)))
+        self.value_table_model.set_entity("instrument", inst)
 
         self.window.plot_manager.clear()
-
-    def _decimal_places_from_number(self, number: float) -> int:
-        # Определяет количество знаков после запятой для согласованного отображения
-        normalized = f"{number:.12f}".rstrip("0").rstrip(".")
-        if "." not in normalized:
-            return 0
-        return len(normalized.split(".")[1])
-
-    def _format_number_with_places(self, number: float, places: int) -> str:
-        # Форматирует число с фиксированным количеством знаков после запятой
-        if places <= 0:
-            return str(int(number)) if float(number).is_integer() else str(number)
-        return f"{number:.{places}f}"
 
     def _instrument_type_label(self, inst) -> str:
         # Получение текстовой метки типа прибора
