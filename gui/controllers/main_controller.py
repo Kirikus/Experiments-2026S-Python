@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt
 
 from gui.models import InstrumentTableModel, ValueTableModel
 from gui.views import MainWindow
+from gui.views.item_delegates import FloatValueDelegate, InstrumentTypeDelegate
 from gui.views.plot_manager import PlotManager
 from src import (
     Constant,
@@ -62,6 +63,18 @@ class MainController:
 
         self.value_table_model = ValueTableModel(on_variable_changed=self._on_values_model_changed)
         self.window.ui.tableValues.setModel(self.value_table_model)
+
+        # Делегаты для корректного редактирования данных в таблицах.
+        self.window.ui.tableValues.setItemDelegateForColumn(1, FloatValueDelegate(self.window.ui.tableValues))
+        self.window.ui.tableValues.setItemDelegateForColumn(2, FloatValueDelegate(self.window.ui.tableValues))
+        self.window.ui.tableInstruments.setItemDelegateForColumn(
+            1,
+            InstrumentTypeDelegate(self.window.ui.tableInstruments),
+        )
+        self.window.ui.tableInstruments.setItemDelegateForColumn(
+            2,
+            FloatValueDelegate(self.window.ui.tableInstruments),
+        )
 
     def _connect_signals(self) -> None:
         # Подключение сигналов интерфейса к обработчикам событий
