@@ -1,196 +1,212 @@
-"""
-PlotManager для управления различными типами графиков (pyqtgraph-style визуализация).
+"""Управление набором графиков во вкладках внутри существующего блока графика."""
 
-Поддерживаемые типы:
-- scatter: точечный график (значение vs индекс)
-- line: линейный график через точки
-- histogram: гистограмма распределения значений
-- approximation: линейная аппроксимация (линия тренда)
-"""
+from __future__ import annotations
 
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import List
+
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QScatterSeries
-from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QPainter, QColor, QPen
+from PySide6.QtCore import QPointF
+from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtWidgets import (
+    QComboBox,
+    QHBoxLayout,
+    QPushButton,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+@dataclass
+class _PlotTab:
+    chart_view: QChartView
+    combo_type: QComboBox
+    chart: QChart
 
 
 class PlotManager:
-    """Менеджер для создания и обновления графиков в QChartView."""
+    """Менеджер вкладок графиков с выбором типа построения для каждой вкладки."""
 
-    def __init__(self, chart_view: QChartView) -> None:
-        """
-        Инициализировать менеджер графиков.
+    _PLOT_TYPES = [
+        ("Точки", "scatter"),
+        ("Линия", "line"),
+        ("Гистограмма", "histogram"),
+        ("Аппроксимация", "approximation"),
+    ]
 
-        :param chart_view: Виджет QChartView для отображения графиков.
-        """
-        self._chart_view = chart_view
-        self._chart: Optional[QChart] = None
-        self._setup_chart()
+    def __init__(self, placeholder_chart_view: QChartView) -> None:
+        self._plot_group = placeholder_chart_view.parentWidget()
+        self._plot_layout = self._plot_group.layout()
+        self._current_values: List[float] = []
+        self._current_title: str = "График"
+        self._tabs: List[_PlotTab] = []
 
-    def _setup_chart(self) -> None:
-        """Инициализировать пустой график."""
-        self._chart = QChart()
-        self._chart.setTitle("График (ожидание выбора переменной)")
-        self._chart_view.setChart(self._chart)
-        self._chart_view.setRenderHint(QPainter.Antialiasing)
+        self._toolbar_widget = QWidget(self._plot_group)
+        self._toolbar_layout = QHBoxLayout(self._toolbar_widget)
+        self._toolbar_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._btn_add_tab = QPushButton("Создать график", self._toolbar_widget)
+        self._btn_add_tab.clicked.connect(self.add_plot_tab)
+        self._toolbar_layout.addWidget(self._btn_add_tab)
+        self._toolbar_layout.addStretch()
+
+        self._tab_widget = QTabWidget(self._plot_group)
+        self._tab_widget.setTabsClosable(True)
+        self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
+
+        self._plot_layout.removeWidget(placeholder_chart_view)
+        placeholder_chart_view.deleteLater()
+        self._plot_layout.addWidget(self._toolbar_widget)
+        self._plot_layout.addWidget(self._tab_widget)
+
+        self.add_plot_tab()
+
+    def add_plot_tab(self) -> None:
+        tab_content = QWidget(self._tab_widget)
+        tab_layout = QVBoxLayout(tab_content)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+
+        combo = QComboBox(tab_content)
+        for label, key in self._PLOT_TYPES:
+            combo.addItem(label, key)
+        tab_layout.addWidget(combo)
+
+        chart_view = QChartView(tab_content)
+        chart_view.setRenderHint(QPainter.Antialiasing)
+        tab_layout.addWidget(chart_view)
+
+        chart = QChart()
+        chart.setTitle("График (ожидание выбора переменной)")
+        chart_view.setChart(chart)
+
+        tab_index = self._tab_widget.addTab(tab_content, f"График {self._tab_widget.count() + 1}")
+        self._tab_widget.setCurrentIndex(tab_index)
+
+        plot_tab = _PlotTab(chart_view=chart_view, combo_type=combo, chart=chart)
+        self._tabs.append(plot_tab)
+
+        combo.currentIndexChanged.connect(lambda _i, t=plot_tab: self._render_tab(t))
+        self._render_tab(plot_tab)
+
+    def _on_tab_close_requested(self, tab_index: int) -> None:
+        if self._tab_widget.count() <= 1:
+            return
+
+        widget = self._tab_widget.widget(tab_index)
+        self._tab_widget.removeTab(tab_index)
+        if widget is not None:
+            widget.deleteLater()
+
+        self._tabs.pop(tab_index)
 
     def clear(self) -> None:
-        """Очистить все серии с графика."""
-        if self._chart:
-            self._chart.removeAllSeries()
-            self._chart.removeAxis(self._chart.axisX())
-            self._chart.removeAxis(self._chart.axisY())
+        self._current_values = []
+        self._current_title = "График"
+        for plot_tab in self._tabs:
+            self._render_tab(plot_tab)
 
-    def plot_scatter(self, values: List[float], title: str = "Scatter Plot") -> None:
-        """
-        Построить точечный график.
+    def plot_scatter(self, values: List[float], title: str = "График") -> None:
+        # Сохраняем данные, а каждый таб сам рисует выбранный им тип графика.
+        self._current_values = values.copy()
+        self._current_title = title
+        for plot_tab in self._tabs:
+            self._render_tab(plot_tab)
 
-        :param values: Список значений для визуализации.
-        :param title: Заголовок графика.
-        """
-        self.clear()
+    def _render_tab(self, plot_tab: _PlotTab) -> None:
+        plot_type = plot_tab.combo_type.currentData()
+        chart = plot_tab.chart
+        chart.removeAllSeries()
+        self._clear_axes(chart)
 
+        values = self._current_values
         if not values:
-            self._chart.setTitle("График пуст (нет данных)")
+            chart.setTitle("График пуст (нет данных)")
             return
 
-        # Создаём серию точек
+        if plot_type == "scatter":
+            self._draw_scatter(chart, values)
+        elif plot_type == "line":
+            self._draw_line(chart, values)
+        elif plot_type == "histogram":
+            self._draw_histogram(chart, values, bins=10)
+        elif plot_type == "approximation":
+            if len(values) < 2:
+                chart.setTitle("Для аппроксимации нужно минимум 2 точки")
+                return
+            self._draw_approximation(chart, values)
+
+        chart.createDefaultAxes()
+        chart.setTitle(f"{self._current_title} ({plot_tab.combo_type.currentText()})")
+
+    def _clear_axes(self, chart: QChart) -> None:
+        for axis in chart.axes():
+            chart.removeAxis(axis)
+
+    def _draw_scatter(self, chart: QChart, values: List[float]) -> None:
         series = QScatterSeries()
         series.setName("Значения")
-
-        # Добавляем точки (индекс, значение)
-        for i, value in enumerate(values):
-            series.append(QPointF(i, value))
-
-        # Стиль точек
         series.setMarkerSize(8)
         series.setColor(QColor(0, 122, 204))
-
-        self._chart.addSeries(series)
-        self._chart.createDefaultAxes()
-        self._chart.setTitle(title)
-
-    def plot_line(self, values: List[float], title: str = "Line Chart") -> None:
-        """
-        Построить линейный график через точки.
-
-        :param values: Список значений для визуализации.
-        :param title: Заголовок графика.
-        """
-        self.clear()
-
-        if not values:
-            self._chart.setTitle("График пуст (нет данных)")
-            return
-
-        # Создаём линейную серию
-        series = QLineSeries()
-        series.setName("Значения")
-
-        # Добавляем точки
         for i, value in enumerate(values):
             series.append(QPointF(i, value))
+        chart.addSeries(series)
 
-        # Стиль линии
-        pen = QPen(QColor(0, 122, 204), 2)
-        series.setPen(pen)
+    def _draw_line(self, chart: QChart, values: List[float]) -> None:
+        series = QLineSeries()
+        series.setName("Значения")
+        series.setPen(QPen(QColor(0, 122, 204), 2))
+        for i, value in enumerate(values):
+            series.append(QPointF(i, value))
+        chart.addSeries(series)
 
-        self._chart.addSeries(series)
-        self._chart.createDefaultAxes()
-        self._chart.setTitle(title)
-
-    def plot_histogram(self, values: List[float], bins: int = 10, title: str = "Histogram") -> None:
-        """
-        Построить гистограмму распределения.
-
-        :param values: Список значений.
-        :param bins: Количество интервалов (бинов).
-        :param title: Заголовок графика.
-        """
-        self.clear()
-
-        if not values:
-            self._chart.setTitle("График пуст (нет данных)")
-            return
-
-        # Вычисляем границы и интервалы
+    def _draw_histogram(self, chart: QChart, values: List[float], bins: int) -> None:
         min_val = min(values)
         max_val = max(values)
-        bin_width = (max_val - min_val) / bins if max_val > min_val else 1
+        bin_width = (max_val - min_val) / bins if max_val > min_val else 1.0
 
-        # Инициализируем счетчики для каждого бина
         hist = [0] * bins
-
-        # Распределяем значения по бинам
         for value in values:
             bin_index = int((value - min_val) / bin_width)
-            bin_index = min(bin_index, bins - 1)  # Граничный случай для max_val
+            bin_index = min(bin_index, bins - 1)
             hist[bin_index] += 1
 
-        # Создаём столбцы (как серия линий)
         series = QLineSeries()
         series.setName("Частота")
-
+        series.setPen(QPen(QColor(204, 122, 0), 2))
         for i, count in enumerate(hist):
-            bin_center = min_val + (i + 0.5) * bin_width
-            series.append(QPointF(bin_center, count))
+            x = min_val + (i + 0.5) * bin_width
+            series.append(QPointF(x, count))
+        chart.addSeries(series)
 
-        pen = QPen(QColor(204, 122, 0), 2)
-        series.setPen(pen)
-
-        self._chart.addSeries(series)
-        self._chart.createDefaultAxes()
-        self._chart.setTitle(title)
-
-    def plot_approximation(self, values: List[float], title: str = "Approximation") -> None:
-        """
-        Построить линейную аппроксимацию (линия тренда).
-
-        :param values: Список значений.
-        :param title: Заголовок графика.
-        """
-        self.clear()
-
-        if len(values) < 2:
-            self._chart.setTitle("Для аппроксимации нужно минимум 2 точки")
-            return
-
-        # Вычисляем линейную регрессию
+    def _draw_approximation(self, chart: QChart, values: List[float]) -> None:
         n = len(values)
-        x_indices = list(range(n))
-        
-        # Формулы для коэффициентов линейной регрессии y = a*x + b
-        sum_x = sum(x_indices)
+        x_values = list(range(n))
+
+        sum_x = sum(x_values)
         sum_y = sum(values)
-        sum_xy = sum(x * y for x, y in zip(x_indices, values))
-        sum_x2 = sum(x * x for x in x_indices)
+        sum_xy = sum(x * y for x, y in zip(x_values, values))
+        sum_x2 = sum(x * x for x in x_values)
 
         denominator = n * sum_x2 - sum_x * sum_x
         if denominator == 0:
-            a, b = 0, sum_y / n
+            a, b = 0.0, sum_y / n
         else:
             a = (n * sum_xy - sum_x * sum_y) / denominator
             b = (sum_y - a * sum_x) / n
 
-        # Строим исходные точки
         scatter_series = QScatterSeries()
         scatter_series.setName("Исходные данные")
-        for i, value in enumerate(values):
-            scatter_series.append(QPointF(i, value))
         scatter_series.setMarkerSize(6)
         scatter_series.setColor(QColor(0, 122, 204))
+        for i, value in enumerate(values):
+            scatter_series.append(QPointF(i, value))
 
-        # Строим линию аппроксимации
         line_series = QLineSeries()
         line_series.setName(f"Линия тренда (y = {a:.3f}*x + {b:.3f})")
+        line_series.setPen(QPen(QColor(204, 0, 0), 2))
         for i in range(n):
-            y_approx = a * i + b
-            line_series.append(QPointF(i, y_approx))
+            line_series.append(QPointF(i, a * i + b))
 
-        pen = QPen(QColor(204, 0, 0), 2)
-        line_series.setPen(pen)
-
-        self._chart.addSeries(scatter_series)
-        self._chart.addSeries(line_series)
-        self._chart.createDefaultAxes()
-        self._chart.setTitle(title)
+        chart.addSeries(scatter_series)
+        chart.addSeries(line_series)
