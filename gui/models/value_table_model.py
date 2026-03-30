@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 from src import Constant, InstrumentAbsolute, InstrumentRelative, VariableCalculated, VariableMeasured
@@ -8,11 +10,15 @@ from src import Constant, InstrumentAbsolute, InstrumentRelative, VariableCalcul
 class ValueTableModel(QAbstractTableModel):
     """Модель правой таблицы значений/погрешностей для выбранной сущности."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        on_variable_changed: Callable[[VariableMeasured | VariableCalculated], None] | None = None,
+    ) -> None:
         super().__init__()
         self._entity_type: str | None = None
         self._entity = None
         self._headers = ["N", "Значение", "Погрешность"]
+        self._on_variable_changed = on_variable_changed
 
     def set_entity(self, entity_type: str | None, entity) -> None:
         self.beginResetModel()
@@ -178,6 +184,8 @@ class ValueTableModel(QAbstractTableModel):
                 variable.errors = errors
 
             self.refresh()
+            if self._on_variable_changed is not None:
+                self._on_variable_changed(variable)
             return True
 
         except ValueError:

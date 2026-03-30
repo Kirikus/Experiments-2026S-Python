@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 from src import Experiment, InstrumentAbsolute, InstrumentRelative
 
 class InstrumentTableModel(QAbstractTableModel):
     # Модель таблицы для отображения и редактирования приборов в эксперименте
-    def __init__(self, experiment: Experiment) -> None:
+    def __init__(
+        self,
+        experiment: Experiment,
+        on_changed: Callable[[], None] | None = None,
+    ) -> None:
         # Инициализация модели, установка эксперимента и заголовков столбцов
         super().__init__()
         self._experiment = experiment
         self._headers = ["Имя", "Тип погрешности", "Величина"]
+        self._on_changed = on_changed
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
         # Возвращает количество строк (приборов) в таблице
@@ -89,6 +96,8 @@ class InstrumentTableModel(QAbstractTableModel):
                 return False
 
         self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
+        if self._on_changed is not None:
+            self._on_changed()
         return True
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
