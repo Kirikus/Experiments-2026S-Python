@@ -1,13 +1,11 @@
-"""Управление набором графиков во вкладках внутри существующего блока графика."""
+"""Управление набором plot-графиков во вкладках внутри существующего блока графика."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import List
 
-from PySide6.QtCharts import QChart, QChartView, QLineSeries, QScatterSeries
-from PySide6.QtCore import QPointF
-from PySide6.QtGui import QColor, QPainter, QPen
+import pyqtgraph as pg
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -20,9 +18,9 @@ from PySide6.QtWidgets import (
 
 @dataclass
 class _PlotTab:
-    chart_view: QChartView
+    plot_widget: pg.PlotWidget
     combo_type: QComboBox
-    chart: QChart
+    tab_title: str
 
 
 class PlotManager:
@@ -35,8 +33,8 @@ class PlotManager:
         ("Аппроксимация", "approximation"),
     ]
 
-    def __init__(self, placeholder_chart_view: QChartView) -> None:
-        self._plot_group = placeholder_chart_view.parentWidget()
+    def __init__(self, placeholder_widget: QWidget) -> None:
+        self._plot_group = placeholder_widget.parentWidget()
         self._plot_layout = self._plot_group.layout()
         self._current_values: List[float] = []
         self._current_title: str = "График"
@@ -55,8 +53,8 @@ class PlotManager:
         self._tab_widget.setTabsClosable(True)
         self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
 
-        self._plot_layout.removeWidget(placeholder_chart_view)
-        placeholder_chart_view.deleteLater()
+        self._plot_layout.removeWidget(placeholder_widget)
+        placeholder_widget.deleteLater()
         self._plot_layout.addWidget(self._toolbar_widget)
         self._plot_layout.addWidget(self._tab_widget)
 
@@ -72,18 +70,19 @@ class PlotManager:
             combo.addItem(label, key)
         tab_layout.addWidget(combo)
 
-        chart_view = QChartView(tab_content)
-        chart_view.setRenderHint(QPainter.Antialiasing)
-        tab_layout.addWidget(chart_view)
-
-        chart = QChart()
-        chart.setTitle("График (ожидание выбора переменной)")
-        chart_view.setChart(chart)
+        plot_widget = pg.PlotWidget(tab_content)
+        plot_widget.setBackground("w")
+        plot_widget.showGrid(x=True, y=True, alpha=0.2)
+        tab_layout.addWidget(plot_widget)
 
         tab_index = self._tab_widget.addTab(tab_content, f"График {self._tab_widget.count() + 1}")
         self._tab_widget.setCurrentIndex(tab_index)
 
-        plot_tab = _PlotTab(chart_view=chart_view, combo_type=combo, chart=chart)
+        plot_tab = _PlotTab(
+            plot_widget=plot_widget,
+            combo_type=combo,
+            tab_title=f"График {tab_index + 1}",
+        )
         self._tabs.append(plot_tab)
 
         combo.currentIndexChanged.connect(lambda _i, t=plot_tab: self._render_tab(t))
@@ -115,52 +114,55 @@ class PlotManager:
 
     def _render_tab(self, plot_tab: _PlotTab) -> None:
         plot_type = plot_tab.combo_type.currentData()
-        chart = plot_tab.chart
-        chart.removeAllSeries()
-        self._clear_axes(chart)
+        pw = plot_tab.plot_widget
+        pw.clear()
+        pw.setTitle("")
+        pw.getPlotItem().legend = None
 
         values = self._current_values
         if not values:
-            chart.setTitle("График пуст (нет данных)")
+            pw.setTitle("График пуст (нет данных)")
             return
 
         if plot_type == "scatter":
-            self._draw_scatter(chart, values)
+            self._draw_scatter(pw, values)
         elif plot_type == "line":
-            self._draw_line(chart, values)
+            self._draw_line(pw, values)
         elif plot_type == "histogram":
-            self._draw_histogram(chart, values, bins=10)
+            self._draw_histogram(pw, values, bins=10)
         elif plot_type == "approximation":
             if len(values) < 2:
-                chart.setTitle("Для аппроксимации нужно минимум 2 точки")
+                pw.setTitle("Для аппроксимации нужно минимум 2 точки")
                 return
-            self._draw_approximation(chart, values)
+            self._draw_approximation(pw, values)
 
-        chart.createDefaultAxes()
-        chart.setTitle(f"{self._current_title} ({plot_tab.combo_type.currentText()})")
+        pw.setTitle(f"{self._current_title} ({plot_tab.combo_type.currentText()})")
+        pw.setLabel("bottom", "Индекс")
+        pw.setLabel("left", "Значение")
 
-    def _clear_axes(self, chart: QChart) -> None:
-        for axis in chart.axes():
-            chart.removeAxis(axis)
+    def _draw_scatter(self, plot_widget: pg.PlotWidget, values: List[float]) -> None:
+        x_values = list(range(len(values)))
+        plot_widget.plot(
+            x_values,
+            values,
+            pen=None,
+            symbol="o",
+            symbolSize=8,
+            symbolBrush=(0, 122, 204),
+            symbolPen=(0, 122, 204),
+            name="Значения",
+        )
 
-    def _draw_scatter(self, chart: QChart, values: List[float]) -> None:
-        series = QScatterSeries()
-        series.setName("Значения")
-        series.setMarkerSize(8)
-        series.setColor(QColor(0, 122, 204))
-        for i, value in enumerate(values):
-            series.append(QPointF(i, value))
-        chart.addSeries(series)
+    def _draw_line(self, plot_widget: pg.PlotWidget, values: List[float]) -> None:
+        x_values = list(range(len(values)))
+        plot_widget.plot(
+            x_values,
+            values,
+            pen=pg.mkPen(color=(0, 122, 204), width=2),
+            name="Значения",
+        )
 
-    def _draw_line(self, chart: QChart, values: List[float]) -> None:
-        series = QLineSeries()
-        series.setName("Значения")
-        series.setPen(QPen(QColor(0, 122, 204), 2))
-        for i, value in enumerate(values):
-            series.append(QPointF(i, value))
-        chart.addSeries(series)
-
-    def _draw_histogram(self, chart: QChart, values: List[float], bins: int) -> None:
+    def _draw_histogram(self, plot_widget: pg.PlotWidget, values: List[float], bins: int) -> None:
         min_val = min(values)
         max_val = max(values)
         bin_width = (max_val - min_val) / bins if max_val > min_val else 1.0
@@ -171,15 +173,17 @@ class PlotManager:
             bin_index = min(bin_index, bins - 1)
             hist[bin_index] += 1
 
-        series = QLineSeries()
-        series.setName("Частота")
-        series.setPen(QPen(QColor(204, 122, 0), 2))
+        x_points = []
+        y_points = []
         for i, count in enumerate(hist):
             x = min_val + (i + 0.5) * bin_width
-            series.append(QPointF(x, count))
-        chart.addSeries(series)
+            x_points.append(x)
+            y_points.append(count)
 
-    def _draw_approximation(self, chart: QChart, values: List[float]) -> None:
+        bars = pg.BarGraphItem(x=x_points, height=y_points, width=bin_width * 0.9, brush=(204, 122, 0))
+        plot_widget.addItem(bars)
+
+    def _draw_approximation(self, plot_widget: pg.PlotWidget, values: List[float]) -> None:
         n = len(values)
         x_values = list(range(n))
 
@@ -195,18 +199,21 @@ class PlotManager:
             a = (n * sum_xy - sum_x * sum_y) / denominator
             b = (sum_y - a * sum_x) / n
 
-        scatter_series = QScatterSeries()
-        scatter_series.setName("Исходные данные")
-        scatter_series.setMarkerSize(6)
-        scatter_series.setColor(QColor(0, 122, 204))
-        for i, value in enumerate(values):
-            scatter_series.append(QPointF(i, value))
+        y_approx = [a * i + b for i in x_values]
 
-        line_series = QLineSeries()
-        line_series.setName(f"Линия тренда (y = {a:.3f}*x + {b:.3f})")
-        line_series.setPen(QPen(QColor(204, 0, 0), 2))
-        for i in range(n):
-            line_series.append(QPointF(i, a * i + b))
-
-        chart.addSeries(scatter_series)
-        chart.addSeries(line_series)
+        plot_widget.plot(
+            x_values,
+            values,
+            pen=None,
+            symbol="o",
+            symbolSize=6,
+            symbolBrush=(0, 122, 204),
+            symbolPen=(0, 122, 204),
+            name="Исходные данные",
+        )
+        plot_widget.plot(
+            x_values,
+            y_approx,
+            pen=pg.mkPen(color=(204, 0, 0), width=2),
+            name=f"Линия тренда (y = {a:.3f}*x + {b:.3f})",
+        )
