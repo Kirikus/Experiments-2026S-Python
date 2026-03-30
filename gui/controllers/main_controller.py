@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QFileDialog,
     QInputDialog,
     QMessageBox,
@@ -53,10 +54,13 @@ class MainController:
 
     def _setup_models(self) -> None:
         # Установка моделей таблиц
-        self.instrument_table_model = InstrumentTableModel(self.experiment)
+        self.instrument_table_model = InstrumentTableModel(
+            self.experiment,
+            on_changed=self._on_instruments_model_changed,
+        )
         self.window.ui.tableInstruments.setModel(self.instrument_table_model)
 
-        self.value_table_model = ValueTableModel()
+        self.value_table_model = ValueTableModel(on_variable_changed=self._on_values_model_changed)
         self.window.ui.tableValues.setModel(self.value_table_model)
 
     def _connect_signals(self) -> None:
@@ -73,14 +77,11 @@ class MainController:
         ui.actionAddInstrument.triggered.connect(self._on_add_instrument)
 
         ui.treeExperiment.itemClicked.connect(self._on_tree_item_clicked)
-        self.value_table_model.modelReset.connect(self._on_values_model_changed)
-        self.instrument_table_model.dataChanged.connect(self._on_instruments_model_changed)
-        self.instrument_table_model.modelReset.connect(self._on_instruments_model_changed)
 
-    def _on_values_model_changed(self) -> None:
-        if isinstance(self._selected_variable, VariableMeasured | VariableCalculated):
-            self.window.ui.valueCount.setText(str(self._selected_variable.count()))
-            self._plot_variable(self._selected_variable)
+    def _on_values_model_changed(self, variable) -> None:
+        if isinstance(variable, VariableMeasured | VariableCalculated):
+            self.window.ui.valueCount.setText(str(variable.count()))
+            self._plot_variable(variable)
 
     def _on_instruments_model_changed(self, *_args) -> None:
         self._refresh_tree(refresh_instrument_model=False)
@@ -255,6 +256,11 @@ class MainController:
         ui.valueName.setText(var.name)
         ui.valueType.setText("Измеренная" if isinstance(var, VariableMeasured) else "Вычисленная")
         ui.valueCount.setText(str(var.count()))
+        ui.tableValues.setEditTriggers(
+            QAbstractItemView.DoubleClicked
+            | QAbstractItemView.EditKeyPressed
+            | QAbstractItemView.AnyKeyPressed
+        )
         self.value_table_model.set_entity("variable", var)
 
         # Построить график переменной
@@ -277,6 +283,7 @@ class MainController:
         ui.valueName.setText(const.name)
         ui.valueType.setText("Константа" + (" (readonly)" if const.readonly else ""))
         ui.valueCount.setText("1")
+        ui.tableValues.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.value_table_model.set_entity("constant", const)
 
         self.window.plot_manager.clear()
@@ -288,6 +295,7 @@ class MainController:
         ui.valueName.setText(inst.name)
         ui.valueType.setText(f"Прибор ({self._instrument_type_label(inst)})")
         ui.valueCount.setText("1")
+        ui.tableValues.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.value_table_model.set_entity("instrument", inst)
 
         self.window.plot_manager.clear()
