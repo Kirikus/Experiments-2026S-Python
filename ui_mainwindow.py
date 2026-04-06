@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.2
+## Created by: Qt User Interface Compiler version 6.11.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -19,15 +19,15 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout,
     QHeaderView, QLabel, QMainWindow, QMenu,
-    QMenuBar, QSizePolicy, QStatusBar, QTableView,
-    QTableWidget, QTableWidgetItem, QTreeWidget, QTreeWidgetItem,
-    QVBoxLayout, QWidget)
+    QMenuBar, QPushButton, QSizePolicy, QStatusBar,
+    QTableView, QTableWidget, QTableWidgetItem, QTreeWidget,
+    QTreeWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(800, 622)
         self.actionNew = QAction(MainWindow)
         self.actionNew.setObjectName(u"actionNew")
         self.actionOpen = QAction(MainWindow)
@@ -56,6 +56,36 @@ class Ui_MainWindow(object):
         self.rightPanel.setObjectName(u"rightPanel")
         self.verticalLayoutRight = QVBoxLayout(self.rightPanel)
         self.verticalLayoutRight.setObjectName(u"verticalLayoutRight")
+        self.nav_layout = QHBoxLayout()
+        self.nav_layout.setObjectName(u"nav_layout")
+        self.btnPageValues = QPushButton(self.rightPanel)
+        self.btnPageValues.setObjectName(u"btnPageValues")
+
+        self.nav_layout.addWidget(self.btnPageValues)
+
+        self.btnPageInstruments = QPushButton(self.rightPanel)
+        self.btnPageInstruments.setObjectName(u"btnPageInstruments")
+
+        self.nav_layout.addWidget(self.btnPageInstruments)
+
+        self.btnPageGraph = QPushButton(self.rightPanel)
+        self.btnPageGraph.setObjectName(u"btnPageGraph")
+
+        self.nav_layout.addWidget(self.btnPageGraph)
+
+        self.btnPageFormulas = QPushButton(self.rightPanel)
+        self.btnPageFormulas.setObjectName(u"btnPageFormulas")
+
+        self.nav_layout.addWidget(self.btnPageFormulas)
+
+        self.btnPageConstants = QPushButton(self.rightPanel)
+        self.btnPageConstants.setObjectName(u"btnPageConstants")
+
+        self.nav_layout.addWidget(self.btnPageConstants)
+
+
+        self.verticalLayoutRight.addLayout(self.nav_layout)
+
         self.tableValues = QTableWidget(self.rightPanel)
         if (self.tableValues.columnCount() < 3):
             self.tableValues.setColumnCount(3)
@@ -139,7 +169,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 22))
+        self.menubar.setGeometry(QRect(0, 0, 800, 26))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuExperiment = QMenu(self.menubar)
@@ -175,13 +205,18 @@ class Ui_MainWindow(object):
         self.actionAddConstant.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u0443", None))
         self.actionAddInstrument.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043f\u0440\u0438\u0431\u043e\u0440", None))
         ___qtreewidgetitem = self.treeExperiment.headerItem()
-        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442", None));
+        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442", None))
+        self.btnPageValues.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0440\u0435\u043c\u0435\u043d\u043d\u044b\u0435", None))
+        self.btnPageInstruments.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b", None))
+        self.btnPageGraph.setText(QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a\u0438", None))
+        self.btnPageFormulas.setText(QCoreApplication.translate("MainWindow", u"\u0424\u043e\u0440\u043c\u0443\u043b\u044b", None))
+        self.btnPageConstants.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u044b", None))
         ___qtablewidgetitem = self.tableValues.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"N", None));
+        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"N", None))
         ___qtablewidgetitem1 = self.tableValues.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435", None));
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435", None))
         ___qtablewidgetitem2 = self.tableValues.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u044c", None));
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u044c", None))
         self.plotGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a", None))
         self.instrumentsGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0438\u0431\u043e\u0440\u044b", None))
         self.infoGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f", None))
