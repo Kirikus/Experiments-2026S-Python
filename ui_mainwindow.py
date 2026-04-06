@@ -56,7 +56,6 @@ class Ui_MainWindow(object):
         self.rightPanel.setObjectName(u"rightPanel")
         self.verticalLayoutRight = QVBoxLayout(self.rightPanel)
         self.verticalLayoutRight.setObjectName(u"verticalLayoutRight")
-        self.verticalLayoutRight.setContentsMargins(0, 0, 0, 0)
         self.tableValues = QTableWidget(self.rightPanel)
         if (self.tableValues.columnCount() < 3):
             self.tableValues.setColumnCount(3)
@@ -140,7 +139,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 19))
+        self.menubar.setGeometry(QRect(0, 0, 800, 22))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuExperiment = QMenu(self.menubar)

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Главное окно приложения для обработки экспериментальных данных -->
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -14,14 +13,10 @@
   <property name="windowTitle">
    <string>Обработка экспериментальных данных</string>
   </property>
-  
-  <!-- Центральный виджет с разделителем -->
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
-    
-    <!-- Левая панель: дерево переменных/констант/приборов -->
     <item>
-    <widget class="QTreeWidget" name="treeExperiment">
+     <widget class="QTreeWidget" name="treeExperiment">
       <property name="maximumSize">
        <size>
         <width>200</width>
@@ -35,79 +30,66 @@
       </column>
      </widget>
     </item>
-    
-    <!-- Правая панель: таблица данных -->
     <item>
-    <widget class="QWidget" name="rightPanel">
-     <layout class="QVBoxLayout" name="verticalLayoutRight">
-       
-
-      <!-- Таблица значений -->
-      <item>
-       <widget class="QTableWidget" name="tableValues">
-        <property name="alternatingRowColors">
-         <bool>true</bool>
-        </property>
-        <column>
-         <property name="text">
-          <string>N</string>
+     <widget class="QWidget" name="rightPanel" native="true">
+      <layout class="QVBoxLayout" name="verticalLayoutRight">
+       <item>
+        <widget class="QTableWidget" name="tableValues">
+         <property name="alternatingRowColors">
+          <bool>true</bool>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Значение</string>
+         <column>
+          <property name="text">
+           <string>N</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Значение</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Погрешность</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="plotGroup">
+         <property name="title">
+          <string>График</string>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Погрешность</string>
-         </property>
-        </column>
-       </widget>
-      </item>
-
-      <!-- График экспериментальных данных (QCustomPlot/QtChart/QGraphicsView) -->
-      <!-- Пробный график для проверки работы программы. В дальнейшем заменить на полноценный QCustomPlot или QtChart. -->
-      <item>
-       <widget class="QGroupBox" name="plotGroup">
-        <property name="title">
-         <string>График</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayoutPlot">
-         <item>
-           <widget class="QChartView" name="plotChartView">
+         <layout class="QVBoxLayout" name="verticalLayoutPlot">
+          <item>
+           <widget class="QChartView" name="plotChartView" native="true">
             <property name="minimumSize">
              <size>
               <width>200</width>
               <height>150</height>
              </size>
             </property>
-            <!-- Здесь отображается график экспериментальных данных через QtCharts (QChartView). Для теста работы программы можно строить простые графики. -->
            </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-
-        <!-- Таблица приборов -->
-        <item>
-         <widget class="QGroupBox" name="instrumentsGroup">
-          <property name="title">
-           <string>Приборы</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayoutInstruments">
-           <item>
-            <widget class="QTableView" name="tableInstruments">
-             <property name="alternatingRowColors">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       
-       <!-- Панель информации -->
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="instrumentsGroup">
+         <property name="title">
+          <string>Приборы</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayoutInstruments">
+          <item>
+           <widget class="QTableView" name="tableInstruments">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <widget class="QGroupBox" name="infoGroup">
          <property name="title">
@@ -159,26 +141,20 @@
          </layout>
         </widget>
        </item>
-       
       </layout>
      </widget>
     </item>
-    
    </layout>
   </widget>
-  
-  <!-- Меню -->
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
-   
-   <!-- Меню Файл -->
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>Файл</string>
@@ -189,8 +165,6 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   
-   <!-- Меню Эксперимент -->
    <widget class="QMenu" name="menuExperiment">
     <property name="title">
      <string>Эксперимент</string>
@@ -199,15 +173,10 @@
     <addaction name="actionAddConstant"/>
     <addaction name="actionAddInstrument"/>
    </widget>
-   
    <addaction name="menuFile"/>
    <addaction name="menuExperiment"/>
   </widget>
-  
-  <!-- Статусная строка -->
   <widget class="QStatusBar" name="statusbar"/>
-  
-  <!-- Действия -->
   <action name="actionNew">
    <property name="text">
     <string>Новый</string>
@@ -243,8 +212,14 @@
     <string>Добавить прибор</string>
    </property>
   </action>
-  
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QChartView</class>
+   <extends>QWidget</extends>
+   <header>qchartview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
