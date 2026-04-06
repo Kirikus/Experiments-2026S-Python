@@ -54,11 +54,11 @@ class ValueTableModel(QAbstractTableModel):
             return str(row + 1)
 
         if self._entity_type == "variable":
-            return self._variable_data(row, column)
+            return self._variable_data(row, column, role)
 
         return None
 
-    def _variable_data(self, row: int, column: int):
+    def _variable_data(self, row: int, column: int, role: int):
         variable = self._entity
         values = variable.values
 
@@ -67,14 +67,35 @@ class ValueTableModel(QAbstractTableModel):
         if row > len(values):
             return None
 
+        errors = variable.get_errors()
+        error_value = errors[row] if row < len(errors) else 0.0
+
+        if role == Qt.EditRole:
+            if column == 1:
+                return str(values[row])
+            if column == 2:
+                return str(error_value)
+            return None
+
+        decimals = self._row_decimals(values[row], error_value)
+
         if column == 1:
-            return str(values[row])
+            return f"{values[row]:.{decimals}f}"
 
         if column == 2:
-            errors = variable.get_errors()
-            return str(errors[row] if row < len(errors) else 0.0)
+            return f"{error_value:.{decimals}f}"
 
         return None
+
+    @staticmethod
+    def _fraction_digits(value: float) -> int:
+        text = f"{value:.12f}".rstrip("0").rstrip(".")
+        if "." not in text:
+            return 0
+        return len(text.split(".", maxsplit=1)[1])
+
+    def _row_decimals(self, value: float, error: float) -> int:
+        return max(self._fraction_digits(value), self._fraction_digits(error))
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
         if not index.isValid() or self._entity is None:
