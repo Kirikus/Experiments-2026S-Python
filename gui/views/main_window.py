@@ -43,6 +43,45 @@ class MainWindow(QMainWindow):
         self.plot_manager = PlotManager(self.ui.plotChartView)
         self.show_variables_page()
 
+    def _setup_page_nav_styles(self) -> None:
+        self._page_buttons = {
+            "variables": self.btnPageVariables,
+            "constants": self.btnPageConstants,
+            "instruments": self.btnPageInstruments,
+            "graph": self.btnPageGraph,
+            "formulas": self.btnPageFormulas,
+        }
+
+        for button in self._page_buttons.values():
+            button.setCheckable(True)
+
+        nav_stylesheet = """
+        QPushButton {
+            padding: 6px 10px;
+            border: 1px solid #c7ccd2;
+            border-radius: 6px;
+            background-color: #f5f7fa;
+            color: #1f2a36;
+            font-weight: 500;
+        }
+        QPushButton:hover {
+            background-color: #e9eef5;
+        }
+        QPushButton:checked {
+            background-color: #0d6efd;
+            border-color: #0b5ed7;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        """
+        for button in self._page_buttons.values():
+            button.setStyleSheet(nav_stylesheet)
+
+    def _set_active_page(self, page_key: str) -> None:
+        self.workspacePages.setCurrentIndex(self._page_indices[page_key])
+        for key, button in self._page_buttons.items():
+            button.setChecked(key == page_key)
+
     def _build_workspace_pages(self) -> None:
         # Навигация по учебным страницам рабочей области.
         right_layout = self.ui.verticalLayoutRight
@@ -123,6 +162,7 @@ class MainWindow(QMainWindow):
         self.btnPageInstruments.clicked.connect(self.show_instruments_page)
         self.btnPageGraph.clicked.connect(self.show_graph_page)
         self.btnPageFormulas.clicked.connect(self.show_formulas_page)
+        self._setup_page_nav_styles()
 
         info_index = right_layout.indexOf(self.ui.infoGroup)
         if info_index >= 0:
@@ -133,16 +173,16 @@ class MainWindow(QMainWindow):
             right_layout.addWidget(self.workspacePages)
 
     def show_variables_page(self) -> None:
-        self.workspacePages.setCurrentIndex(self._page_indices["variables"])
+        self._set_active_page("variables")
 
     def show_constants_page(self) -> None:
-        self.workspacePages.setCurrentIndex(self._page_indices["constants"])
+        self._set_active_page("constants")
 
     def show_instruments_page(self) -> None:
-        self.workspacePages.setCurrentIndex(self._page_indices["instruments"])
+        self._set_active_page("instruments")
 
     def show_graph_page(self) -> None:
-        self.workspacePages.setCurrentIndex(self._page_indices["graph"])
+        self._set_active_page("graph")
 
     def show_formulas_page(self) -> None:
-        self.workspacePages.setCurrentIndex(self._page_indices["formulas"])
+        self._set_active_page("formulas")
