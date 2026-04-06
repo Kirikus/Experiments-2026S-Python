@@ -1,24 +1,21 @@
 from __future__ import annotations
 
-from typing import Callable
-
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
-from src import Constant, InstrumentAbsolute, InstrumentRelative, VariableCalculated, VariableMeasured
+from src import VariableCalculated, VariableMeasured
 
 
 class ValueTableModel(QAbstractTableModel):
     """Модель правой таблицы значений/погрешностей для выбранной сущности."""
 
-    def __init__(
-        self,
-        on_variable_changed: Callable[[VariableMeasured | VariableCalculated], None] | None = None,
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self._entity_type: str | None = None
         self._entity = None
         self._headers = ["N", "Значение", "Погрешность"]
-        self._on_variable_changed = on_variable_changed
+
+    def clear(self) -> None:
+        self.set_entity(None, None)
 
     def set_entity(self, entity_type: str | None, entity) -> None:
         self.beginResetModel()
@@ -58,10 +55,6 @@ class ValueTableModel(QAbstractTableModel):
 
         if self._entity_type == "variable":
             return self._variable_data(row, column)
-        if self._entity_type == "constant":
-            return self._constant_data(column)
-        if self._entity_type == "instrument":
-            return self._instrument_data(column)
 
         return None
 
@@ -81,22 +74,6 @@ class ValueTableModel(QAbstractTableModel):
             errors = variable.get_errors()
             return str(errors[row] if row < len(errors) else 0.0)
 
-        return None
-
-    def _constant_data(self, column: int):
-        constant: Constant = self._entity
-        if column == 1:
-            return str(constant.value)
-        if column == 2:
-            return str(constant.error)
-        return None
-
-    def _instrument_data(self, column: int):
-        instrument = self._entity
-        if column == 1:
-            return "абсолютная" if isinstance(instrument, InstrumentAbsolute) else "относительная"
-        if column == 2:
-            return str(instrument.error_value)
         return None
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
@@ -184,8 +161,6 @@ class ValueTableModel(QAbstractTableModel):
                 variable.errors = errors
 
             self.refresh()
-            if self._on_variable_changed is not None:
-                self._on_variable_changed(variable)
             return True
 
         except ValueError:

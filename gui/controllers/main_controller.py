@@ -7,11 +7,12 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QInputDialog,
     QMessageBox,
+    QHeaderView,
     QTreeWidgetItem,
 )
 from PySide6.QtCore import Qt
 
-from gui.models import InstrumentTableModel, ValueTableModel
+from gui.models import ConstantDetailTableModel, InstrumentTableModel, ValueTableModel
 from gui.views import MainWindow
 from gui.views.item_delegates import FloatValueDelegate
 from gui.views.plot_manager import PlotManager
@@ -58,8 +59,14 @@ class MainController:
         self.instrument_table_model = InstrumentTableModel(self.experiment)
         self.window.ui.tableInstruments.setModel(self.instrument_table_model)
 
-        self.value_table_model = ValueTableModel(on_variable_changed=self._on_values_model_changed)
+        self.value_table_model = ValueTableModel()
         self.window.ui.tableValues.setModel(self.value_table_model)
+
+        self.constant_table_model = ConstantDetailTableModel()
+        self.window.constantsTable.setModel(self.constant_table_model)
+        self.window.constantsTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.window.constantsTable.verticalHeader().setVisible(False)
+        self.window.constantsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         # Делегаты для корректного редактирования данных в таблицах.
         self.window.ui.tableValues.setItemDelegateForColumn(1, FloatValueDelegate(self.window.ui.tableValues))
@@ -79,11 +86,6 @@ class MainController:
         ui.actionAddInstrument.triggered.connect(self._on_add_instrument)
 
         ui.treeExperiment.itemClicked.connect(self._on_tree_item_clicked)
-
-    def _on_values_model_changed(self, variable) -> None:
-        if isinstance(variable, VariableMeasured | VariableCalculated):
-            self.window.ui.valueCount.setText(str(variable.count()))
-            self._plot_variable(variable)
 
     def _on_new(self) -> None:
         # Обработчик создания нового эксперимента
@@ -260,6 +262,7 @@ class MainController:
             | QAbstractItemView.AnyKeyPressed
         )
         self.value_table_model.set_entity("variable", var)
+        self.constant_table_model.set_constant(None)
 
         # Построить график переменной
         self._plot_variable(var)
@@ -281,8 +284,8 @@ class MainController:
         ui.valueName.setText(const.name)
         ui.valueType.setText("Константа" + (" (readonly)" if const.readonly else ""))
         ui.valueCount.setText("1")
-        ui.tableValues.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.value_table_model.set_entity("constant", const)
+        self.value_table_model.clear()
+        self.constant_table_model.set_constant(const)
 
         self.window.plot_manager.clear()
 
@@ -293,6 +296,8 @@ class MainController:
         ui.valueName.setText(inst.name)
         ui.valueType.setText(f"Прибор ({self._instrument_type_label(inst)})")
         ui.valueCount.setText("1")
+        self.value_table_model.clear()
+        self.constant_table_model.set_constant(None)
 
         self.window.plot_manager.clear()
 

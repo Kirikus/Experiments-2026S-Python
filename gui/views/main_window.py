@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         old_values_table.deleteLater()
         self.ui.tableValues = values_table
 
-        self._build_variable_and_formula_groups()
+        self._build_workspace_groups()
 
         # Растягиваем столбцы таблиц значений и приборов на всю ширину
         self.ui.tableValues.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         # Инициализируем менеджер графиков
         self.plot_manager = PlotManager(self.ui.plotChartView)
 
-    def _build_variable_and_formula_groups(self) -> None:
+    def _build_workspace_groups(self) -> None:
         # Группа переменных: основная таблица значений только для переменных.
         variable_group = QGroupBox("Переменные", self.ui.rightPanel)
         variable_layout = QVBoxLayout(variable_group)
@@ -50,6 +50,18 @@ class MainWindow(QMainWindow):
         right_layout.removeWidget(self.ui.tableValues)
         variable_layout.addWidget(self.ui.tableValues)
         right_layout.insertWidget(0, variable_group)
+
+        # Группа констант: отдельная таблица для одной выбранной константы.
+        self.constantsTable = QTableView(self.ui.rightPanel)
+        self.constantsTable.setObjectName("constantsTable")
+        self.constantsTable.setAlternatingRowColors(True)
+
+        constants_group = QGroupBox("Константы", self.ui.rightPanel)
+        constants_layout = QVBoxLayout(constants_group)
+        constants_layout.setContentsMargins(8, 8, 8, 8)
+        constants_layout.addWidget(self.constantsTable)
+
+        right_layout.insertWidget(1, constants_group)
 
         # Группа формул: пока учебная заглушка.
         formulas_group = QGroupBox("Формулы", self.ui.rightPanel)
