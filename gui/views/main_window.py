@@ -45,11 +45,11 @@ class MainWindow(QMainWindow):
 
     def _setup_page_nav_styles(self) -> None:
         self._page_buttons = {
-            "variables": self.btnPageVariables,
-            "constants": self.btnPageConstants,
-            "instruments": self.btnPageInstruments,
-            "graph": self.btnPageGraph,
-            "formulas": self.btnPageFormulas,
+            "variables": self.ui.btnPageValues,
+            "constants": self.ui.btnPageConstants,
+            "instruments": self.ui.btnPageInstruments,
+            "graph": self.ui.btnPageGraph,
+            "formulas": self.ui.btnPageFormulas,
         }
 
         for button in self._page_buttons.values():
@@ -93,17 +93,12 @@ class MainWindow(QMainWindow):
         nav_layout = QHBoxLayout(nav_widget)
         nav_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.btnPageVariables = QPushButton("Переменные", nav_widget)
-        self.btnPageConstants = QPushButton("Константы", nav_widget)
-        self.btnPageInstruments = QPushButton("Приборы", nav_widget)
-        self.btnPageGraph = QPushButton("График", nav_widget)
-        self.btnPageFormulas = QPushButton("Формулы", nav_widget)
 
-        nav_layout.addWidget(self.btnPageVariables)
-        nav_layout.addWidget(self.btnPageConstants)
-        nav_layout.addWidget(self.btnPageInstruments)
-        nav_layout.addWidget(self.btnPageGraph)
-        nav_layout.addWidget(self.btnPageFormulas)
+        nav_layout.addWidget(self.ui.btnPageValues)
+        nav_layout.addWidget(self.ui.btnPageConstants)
+        nav_layout.addWidget(self.ui.btnPageInstruments)
+        nav_layout.addWidget(self.ui.btnPageGraph)
+        nav_layout.addWidget(self.ui.btnPageFormulas)
 
         self.workspacePages = QStackedWidget(self.ui.rightPanel)
 
@@ -157,11 +152,11 @@ class MainWindow(QMainWindow):
             "formulas": 4,
         }
 
-        self.btnPageVariables.clicked.connect(self.show_variables_page)
-        self.btnPageConstants.clicked.connect(self.show_constants_page)
-        self.btnPageInstruments.clicked.connect(self.show_instruments_page)
-        self.btnPageGraph.clicked.connect(self.show_graph_page)
-        self.btnPageFormulas.clicked.connect(self.show_formulas_page)
+        self.ui.btnPageValues.clicked.connect(self.show_variables_page)
+        self.ui.btnPageConstants.clicked.connect(self.show_constants_page)
+        self.ui.btnPageInstruments.clicked.connect(self.show_instruments_page)
+        self.ui.btnPageGraph.clicked.connect(self.show_graph_page)
+        self.ui.btnPageFormulas.clicked.connect(self.show_formulas_page)
         self._setup_page_nav_styles()
 
         info_index = right_layout.indexOf(self.ui.infoGroup)

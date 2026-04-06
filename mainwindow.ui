@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>622</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,6 +33,45 @@
     <item>
      <widget class="QWidget" name="rightPanel" native="true">
       <layout class="QVBoxLayout" name="verticalLayoutRight">
+       <item>
+        <layout class="QHBoxLayout" name="nav_layout">
+         <item>
+          <widget class="QPushButton" name="btnPageValues">
+           <property name="text">
+            <string>Переменные</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnPageInstruments">
+           <property name="text">
+            <string>Инструменты</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnPageGraph">
+           <property name="text">
+            <string>Графики</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnPageFormulas">
+           <property name="text">
+            <string>Формулы</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnPageConstants">
+           <property name="text">
+            <string>Константы</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
        <item>
         <widget class="QTableWidget" name="tableValues">
          <property name="alternatingRowColors">
@@ -152,7 +191,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
