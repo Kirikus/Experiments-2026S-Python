@@ -1,23 +1,16 @@
 from __future__ import annotations
 
-from typing import Callable
-
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 from src import Experiment, InstrumentAbsolute, InstrumentRelative
 
 class InstrumentTableModel(QAbstractTableModel):
     # Модель таблицы для отображения и редактирования приборов в эксперименте
-    def __init__(
-        self,
-        experiment: Experiment,
-        on_changed: Callable[[], None] | None = None,
-    ) -> None:
+    def __init__(self, experiment: Experiment) -> None:
         # Инициализация модели, установка эксперимента и заголовков столбцов
         super().__init__()
         self._experiment = experiment
         self._headers = ["Имя", "Тип погрешности", "Величина"]
-        self._on_changed = on_changed
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
         # Возвращает количество строк (приборов) в таблице
@@ -64,45 +57,13 @@ class InstrumentTableModel(QAbstractTableModel):
                 return None
 
     def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
-        # Устанавливает новые данные в ячейку таблицы (редактирование)
-        if not index.isValid() or role != Qt.EditRole:
-            return False
-
-        instrument = self._experiment._instruments[index.row()]
-
-        match index.column():
-            case 0:
-                instrument.name = str(value)
-            case 1:
-                value_str = str(value).strip().lower()
-                # match-case для смены типа прибора
-                match value_str:
-                    case "absolute" | "абсолютная" | "abs":
-                        if not isinstance(instrument, InstrumentAbsolute):
-                            replacement = InstrumentAbsolute(instrument.name, instrument.error_value)
-                            self._experiment.replace_instrument(instrument, replacement)
-                    case "relative" | "относительная" | "rel":
-                        if not isinstance(instrument, InstrumentRelative):
-                            replacement = InstrumentRelative(instrument.name, instrument.error_value)
-                            self._experiment.replace_instrument(instrument, replacement)
-                    case _:
-                        return False
-            case 2:
-                try:
-                    instrument.error_value = float(value)
-                except (TypeError, ValueError):
-                    return False
-            case _:
-                return False
-
-        self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
-        if self._on_changed is not None:
-            self._on_changed()
-        return True
+        return False
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
-        # Возвращает флаги для ячейки (разрешает редактирование)
-        return Qt.ItemIsEditable | super().flags(index)
+        # Приборы отображаются только для просмотра.
+        if not index.isValid():
+            return Qt.NoItemFlags
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def headerData(
         # Возвращает заголовки столбцов или строк

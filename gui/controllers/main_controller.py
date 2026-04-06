@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt
 
 from gui.models import InstrumentTableModel, ValueTableModel
 from gui.views import MainWindow
-from gui.views.item_delegates import FloatValueDelegate, InstrumentTypeDelegate
+from gui.views.item_delegates import FloatValueDelegate
 from gui.views.plot_manager import PlotManager
 from src import (
     Constant,
@@ -55,10 +55,7 @@ class MainController:
 
     def _setup_models(self) -> None:
         # Установка моделей таблиц
-        self.instrument_table_model = InstrumentTableModel(
-            self.experiment,
-            on_changed=self._on_instruments_model_changed,
-        )
+        self.instrument_table_model = InstrumentTableModel(self.experiment)
         self.window.ui.tableInstruments.setModel(self.instrument_table_model)
 
         self.value_table_model = ValueTableModel(on_variable_changed=self._on_values_model_changed)
@@ -67,14 +64,6 @@ class MainController:
         # Делегаты для корректного редактирования данных в таблицах.
         self.window.ui.tableValues.setItemDelegateForColumn(1, FloatValueDelegate(self.window.ui.tableValues))
         self.window.ui.tableValues.setItemDelegateForColumn(2, FloatValueDelegate(self.window.ui.tableValues))
-        self.window.ui.tableInstruments.setItemDelegateForColumn(
-            1,
-            InstrumentTypeDelegate(self.window.ui.tableInstruments),
-        )
-        self.window.ui.tableInstruments.setItemDelegateForColumn(
-            2,
-            FloatValueDelegate(self.window.ui.tableInstruments),
-        )
 
     def _connect_signals(self) -> None:
         # Подключение сигналов интерфейса к обработчикам событий
@@ -95,10 +84,6 @@ class MainController:
         if isinstance(variable, VariableMeasured | VariableCalculated):
             self.window.ui.valueCount.setText(str(variable.count()))
             self._plot_variable(variable)
-
-    def _on_instruments_model_changed(self, *_args) -> None:
-        self._refresh_tree(refresh_instrument_model=False)
-        self.value_table_model.refresh()
 
     def _on_new(self) -> None:
         # Обработчик создания нового эксперимента
@@ -308,8 +293,6 @@ class MainController:
         ui.valueName.setText(inst.name)
         ui.valueType.setText(f"Прибор ({self._instrument_type_label(inst)})")
         ui.valueCount.setText("1")
-        ui.tableValues.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.value_table_model.set_entity("instrument", inst)
 
         self.window.plot_manager.clear()
 
