@@ -1,10 +1,12 @@
 from ui_mainwindow import Ui_MainWindow
 
 from PySide6.QtWidgets import (
-    QGroupBox,
+    QHBoxLayout,
     QHeaderView,
     QLabel,
     QMainWindow,
+    QPushButton,
+    QStackedWidget,
     QTableView,
     QVBoxLayout,
     QWidget,
@@ -27,7 +29,7 @@ class MainWindow(QMainWindow):
         old_values_table.deleteLater()
         self.ui.tableValues = values_table
 
-        self._build_workspace_groups()
+        self._build_workspace_pages()
 
         # Растягиваем столбцы таблиц значений и приборов на всю ширину
         self.ui.tableValues.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -39,41 +41,108 @@ class MainWindow(QMainWindow):
 
         # Инициализируем менеджер графиков
         self.plot_manager = PlotManager(self.ui.plotChartView)
+        self.show_variables_page()
 
-    def _build_workspace_groups(self) -> None:
-        # Группа переменных: основная таблица значений только для переменных.
-        variable_group = QGroupBox("Переменные", self.ui.rightPanel)
-        variable_layout = QVBoxLayout(variable_group)
-        variable_layout.setContentsMargins(8, 8, 8, 8)
-
+    def _build_workspace_pages(self) -> None:
+        # Навигация по учебным страницам рабочей области.
         right_layout = self.ui.verticalLayoutRight
         right_layout.removeWidget(self.ui.tableValues)
-        variable_layout.addWidget(self.ui.tableValues)
-        right_layout.insertWidget(0, variable_group)
+        right_layout.removeWidget(self.ui.plotGroup)
+        right_layout.removeWidget(self.ui.instrumentsGroup)
 
-        # Группа констант: отдельная таблица для одной выбранной константы.
+        nav_widget = QWidget(self.ui.rightPanel)
+        nav_layout = QHBoxLayout(nav_widget)
+        nav_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.btnPageVariables = QPushButton("Переменные", nav_widget)
+        self.btnPageConstants = QPushButton("Константы", nav_widget)
+        self.btnPageInstruments = QPushButton("Приборы", nav_widget)
+        self.btnPageGraph = QPushButton("График", nav_widget)
+        self.btnPageFormulas = QPushButton("Формулы", nav_widget)
+
+        nav_layout.addWidget(self.btnPageVariables)
+        nav_layout.addWidget(self.btnPageConstants)
+        nav_layout.addWidget(self.btnPageInstruments)
+        nav_layout.addWidget(self.btnPageGraph)
+        nav_layout.addWidget(self.btnPageFormulas)
+
+        self.workspacePages = QStackedWidget(self.ui.rightPanel)
+
+        # Страница переменных.
+        variables_page = QWidget(self.workspacePages)
+        variables_layout = QVBoxLayout(variables_page)
+        variables_layout.setContentsMargins(8, 8, 8, 8)
+        variables_layout.addWidget(self.ui.tableValues)
+        self.workspacePages.addWidget(variables_page)
+
+        # Страница констант.
         self.constantsTable = QTableView(self.ui.rightPanel)
         self.constantsTable.setObjectName("constantsTable")
         self.constantsTable.setAlternatingRowColors(True)
 
-        constants_group = QGroupBox("Константы", self.ui.rightPanel)
-        constants_layout = QVBoxLayout(constants_group)
+        constants_page = QWidget(self.workspacePages)
+        constants_layout = QVBoxLayout(constants_page)
         constants_layout.setContentsMargins(8, 8, 8, 8)
         constants_layout.addWidget(self.constantsTable)
+        self.workspacePages.addWidget(constants_page)
 
-        right_layout.insertWidget(1, constants_group)
+        # Страница приборов.
+        instruments_page = QWidget(self.workspacePages)
+        instruments_layout = QVBoxLayout(instruments_page)
+        instruments_layout.setContentsMargins(8, 8, 8, 8)
+        instruments_layout.addWidget(self.ui.instrumentsGroup)
+        self.workspacePages.addWidget(instruments_page)
 
-        # Группа формул: пока учебная заглушка.
-        formulas_group = QGroupBox("Формулы", self.ui.rightPanel)
-        formulas_layout = QVBoxLayout(formulas_group)
+        # Страница графиков.
+        graph_page = QWidget(self.workspacePages)
+        graph_layout = QVBoxLayout(graph_page)
+        graph_layout.setContentsMargins(8, 8, 8, 8)
+        graph_layout.addWidget(self.ui.plotGroup)
+        self.workspacePages.addWidget(graph_page)
+
+        # Страница формул (заглушка).
+        formulas_page = QWidget(self.workspacePages)
+        formulas_layout = QVBoxLayout(formulas_page)
         formulas_layout.setContentsMargins(8, 8, 8, 8)
 
-        formulas_hint = QLabel("Заглушка: здесь будет редактор и список формул.", formulas_group)
+        formulas_hint = QLabel("Заглушка: здесь будет редактор и список формул.", formulas_page)
         formulas_hint.setWordWrap(True)
         formulas_layout.addWidget(formulas_hint)
+        self.workspacePages.addWidget(formulas_page)
+
+        self._page_indices = {
+            "variables": 0,
+            "constants": 1,
+            "instruments": 2,
+            "graph": 3,
+            "formulas": 4,
+        }
+
+        self.btnPageVariables.clicked.connect(self.show_variables_page)
+        self.btnPageConstants.clicked.connect(self.show_constants_page)
+        self.btnPageInstruments.clicked.connect(self.show_instruments_page)
+        self.btnPageGraph.clicked.connect(self.show_graph_page)
+        self.btnPageFormulas.clicked.connect(self.show_formulas_page)
 
         info_index = right_layout.indexOf(self.ui.infoGroup)
         if info_index >= 0:
-            right_layout.insertWidget(info_index, formulas_group)
+            right_layout.insertWidget(info_index, nav_widget)
+            right_layout.insertWidget(info_index + 1, self.workspacePages)
         else:
-            right_layout.addWidget(formulas_group)
+            right_layout.addWidget(nav_widget)
+            right_layout.addWidget(self.workspacePages)
+
+    def show_variables_page(self) -> None:
+        self.workspacePages.setCurrentIndex(self._page_indices["variables"])
+
+    def show_constants_page(self) -> None:
+        self.workspacePages.setCurrentIndex(self._page_indices["constants"])
+
+    def show_instruments_page(self) -> None:
+        self.workspacePages.setCurrentIndex(self._page_indices["instruments"])
+
+    def show_graph_page(self) -> None:
+        self.workspacePages.setCurrentIndex(self._page_indices["graph"])
+
+    def show_formulas_page(self) -> None:
+        self.workspacePages.setCurrentIndex(self._page_indices["formulas"])

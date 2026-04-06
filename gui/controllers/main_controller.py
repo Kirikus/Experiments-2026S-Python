@@ -252,6 +252,7 @@ class MainController:
     def _show_variable(self, var) -> None:
         # Отображение информации о переменной в интерфейсе
         self._selected_variable = var
+        self.window.show_variables_page()
         ui = self.window.ui
         ui.valueName.setText(var.name)
         ui.valueType.setText("Измеренная" if isinstance(var, VariableMeasured) else "Вычисленная")
@@ -280,6 +281,7 @@ class MainController:
     def _show_constant(self, const: Constant) -> None:
         # Отображение информации о константе в интерфейсе
         self._selected_variable = None
+        self.window.show_constants_page()
         ui = self.window.ui
         ui.valueName.setText(const.name)
         ui.valueType.setText("Константа" + (" (readonly)" if const.readonly else ""))
@@ -292,6 +294,7 @@ class MainController:
     def _show_instrument(self, inst) -> None:
         # Отображение информации о приборе в интерфейсе
         self._selected_variable = None
+        self.window.show_instruments_page()
         ui = self.window.ui
         ui.valueName.setText(inst.name)
         ui.valueType.setText(f"Прибор ({self._instrument_type_label(inst)})")
