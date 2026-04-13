@@ -9,9 +9,7 @@ import pyqtgraph as pg
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QComboBox,
-    QHBoxLayout,
     QLabel,
-    QPushButton,
     QStackedWidget,
     QTabWidget,
     QVBoxLayout,
@@ -147,39 +145,21 @@ class PlotManager:
         CorrelogramPlotTab,
     ]
 
-    def __init__(self, placeholder_widget: QWidget, ui) -> None:
-        self._plot_group = placeholder_widget.parentWidget()
+    def __init__(self, ui) -> None:
         self.ui = ui
-        self._plot_layout = self._plot_group.layout()
         self._source_variable: Any | None = None
         self._tabs: list[PlotTab] = []
-        self._refresh_timer = QTimer(self._plot_group)
+        self._refresh_timer = QTimer(self.ui.plotGroup)
         self._refresh_timer.setSingleShot(True)
         self._refresh_timer.setInterval(120)
         self._refresh_timer.timeout.connect(self._refresh_graph_now)
 
-        self._toolbar_widget = QWidget(self._plot_group)
-        toolbar_layout = QHBoxLayout(self._toolbar_widget)
-        toolbar_layout.setContentsMargins(0, 0, 0, 0)
-
-        btn_get_graph = QPushButton("Получить график", self._plot_group)
-        btn_get_graph.clicked.connect(self.refresh_graph)
-
-        self.ui._btn_add_tab.setText("Добавить вкладку")
+        self.ui.btnGetGraph.clicked.connect(self.refresh_graph)
         self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)
 
-        toolbar_layout.addWidget(btn_get_graph)
-        toolbar_layout.addWidget(self.ui._btn_add_tab)
-        toolbar_layout.addStretch()
-
-        self._tab_widget = QTabWidget(self._plot_group)
+        self._tab_widget: QTabWidget = self.ui.plotTabs
         self._tab_widget.setTabsClosable(True)
         self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
-
-        self._plot_layout.removeWidget(placeholder_widget)
-        placeholder_widget.deleteLater()
-        self._plot_layout.addWidget(self._toolbar_widget)
-        self._plot_layout.addWidget(self._tab_widget)
         self.add_plot_tab()
 
     def set_source_variable(self, variable: Any | None) -> None:
