@@ -2,16 +2,7 @@
 
 from dataclasses import dataclass, field
 
-
-def _normalize_cell(cell: str) -> str:
-    """
-    Normalize one table cell according to task requirements.
-
-    Empty cell values are represented as a single space in CSV.
-    """
-    if cell == "":
-        return " "
-    return cell
+from .cell_utils import normalize_cell
 
 
 @dataclass(slots=True)
@@ -55,7 +46,7 @@ class TableData:
                     f"expected {self.column_count}, got {len(row)}"
                 )
 
-            normalized_rows.append([_normalize_cell(cell) for cell in row])
+            normalized_rows.append([normalize_cell(cell) for cell in row])
 
         self.rows = normalized_rows
 
@@ -67,4 +58,4 @@ class TableData:
                 f"expected {self.column_count}, got {len(row)}"
             )
 
-        self.rows.append([_normalize_cell(cell) for cell in row])
+        self.rows.append([normalize_cell(cell) for cell in row])

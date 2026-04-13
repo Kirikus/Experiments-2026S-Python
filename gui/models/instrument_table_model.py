@@ -16,8 +16,7 @@ class InstrumentTableModel(QAbstractTableModel):
         # Возвращает количество строк (приборов) в таблице
         if parent.isValid():
             return 0
-        # Прямой доступ к данным, без копирования
-        return len(self._experiment._instruments)
+        return self._experiment.get_instruments_count()
 
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
         # Возвращает количество столбцов в таблице
@@ -30,7 +29,7 @@ class InstrumentTableModel(QAbstractTableModel):
         if not index.isValid():
             return None
 
-        instrument = self._experiment._instruments[index.row()]
+        instrument = self._experiment.get_instruments()[index.row()]
 
         if role == Qt.UserRole:
             return instrument

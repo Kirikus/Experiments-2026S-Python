@@ -163,16 +163,21 @@ class Variable(ABC):
     ) -> "Variable":
         """Создать Variable из сериализованных метаданных."""
         variable_type = data.get("type")
-        name = data["name"]
+        if variable_type not in {"measured", "calculated"}:
+            raise ValueError(f"Unknown variable type: {variable_type}")
+
+        name = data.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("Variable 'name' must be a non-empty string")
 
         if variable_type == "measured":
             inst_name = data.get("instrument_name")
             instrument = instruments.get(inst_name) if (instruments and inst_name) else None
+            if inst_name and instrument is None:
+                raise ValueError(f"Instrument '{inst_name}' was not found for measured variable '{name}'")
             variable = VariableMeasured(name, instrument)
-        elif variable_type == "calculated":
-            variable = VariableCalculated(name)
         else:
-            raise ValueError(f"Unknown variable type: {variable_type}")
+            variable = VariableCalculated(name)
 
         variable.measurement_type = data.get("measurement_type")
         return variable

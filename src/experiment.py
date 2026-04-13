@@ -4,6 +4,7 @@ Experiment — класс для хранения всех данных эксп
 """
 
 from typing import List, Optional, TYPE_CHECKING
+from threading import Lock
 
 if TYPE_CHECKING:
     from .variable import Variable
@@ -23,11 +24,13 @@ class Experiment:
 
     _instance: Optional["Experiment"] = None
     _initialized: bool = False
+    _lock: Lock = Lock()
 
     def __new__(cls) -> "Experiment":
         """Реализация паттерна Singleton."""
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self) -> None:
@@ -97,6 +100,10 @@ class Experiment:
         Возвращает копию, чтобы внешний код не мог мутировать внутреннее состояние.
         """
         return self._instruments.copy()
+
+    def get_instruments_count(self) -> int:
+        """Получить количество приборов без раскрытия внутренней коллекции."""
+        return len(self._instruments)
 
     def clear(self) -> None:
         """Очистить все данные текущего эксперимента."""

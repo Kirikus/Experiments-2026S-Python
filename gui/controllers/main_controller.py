@@ -27,6 +27,12 @@ from src import (
 from src.serializers import ExperimentSerializer
 
 
+VARIABLE_TYPE_MEASURED = "Измеренная (с прибором)"
+VARIABLE_TYPE_CALCULATED = "Вычисленная"
+INSTRUMENT_TYPE_ABSOLUTE = "Абсолютная погрешность"
+INSTRUMENT_TYPE_RELATIVE = "Относительная погрешность (%)"
+
+
 class MainController:
     # Главный контроллер приложения, связывает модель, представление и обработку событий
     def __init__(self, window: MainWindow) -> None:
@@ -136,14 +142,14 @@ class MainController:
             QMessageBox.warning(self.window, "Ошибка", f"Переменная '{name}' уже существует")
             return
 
-        types = ["Измеренная (с прибором)", "Вычисленная"]
+        types = [VARIABLE_TYPE_MEASURED, VARIABLE_TYPE_CALCULATED]
         var_type, ok = QInputDialog.getItem(
             self.window, "Тип переменной", "Выберите тип:", types, 0, False
         )
         if not ok:
             return
 
-        if var_type == types[0]:
+        if var_type == VARIABLE_TYPE_MEASURED:
             instruments = self.experiment.get_instruments()
             if not instruments:
                 QMessageBox.information(
@@ -204,7 +210,7 @@ class MainController:
         if not (ok and name):
             return
 
-        types = ["Абсолютная погрешность", "Относительная погрешность (%)"]
+        types = [INSTRUMENT_TYPE_ABSOLUTE, INSTRUMENT_TYPE_RELATIVE]
         inst_type, ok = QInputDialog.getItem(
             self.window, "Тип прибора", "Выберите тип:", types, 0, False
         )
@@ -225,7 +231,7 @@ class MainController:
 
         instrument = (
             InstrumentAbsolute(name, error)
-            if inst_type == types[0]
+            if inst_type == INSTRUMENT_TYPE_ABSOLUTE
             else InstrumentRelative(name, error)
         )
         self.experiment.add_instrument(instrument)
@@ -265,18 +271,9 @@ class MainController:
         self.value_table_model.set_entity("variable", var)
         self.constant_table_model.set_constant(None)
 
-        # Построить график переменной
-        self._plot_variable(var)
-
-    def _plot_variable(self, var) -> None:
-        # Построить график точечного графика для переменной
-        values = var.values
-        if not values:
-            self.window.plot_manager.clear()
-            return
-
-        title = f"График: {var.name}"
-        self.window.plot_manager.plot_scatter(values, title)
+        # Сохраняем выбранную переменную как источник графика.
+        self.window.plot_manager.set_source_variable(var)
+        self.window.plot_manager.refresh_graph()
 
     def _show_constant(self, const: Constant) -> None:
         # Отображение информации о константе в интерфейсе
@@ -289,7 +286,8 @@ class MainController:
         self.value_table_model.clear()
         self.constant_table_model.set_constant(const)
 
-        self.window.plot_manager.clear()
+        self.window.plot_manager.set_source_variable(None)
+        self.window.plot_manager.refresh_graph()
 
     def _show_instrument(self, inst) -> None:
         # Отображение информации о приборе в интерфейсе
@@ -302,7 +300,8 @@ class MainController:
         self.value_table_model.clear()
         self.constant_table_model.set_constant(None)
 
-        self.window.plot_manager.clear()
+        self.window.plot_manager.set_source_variable(None)
+        self.window.plot_manager.refresh_graph()
 
     def _instrument_type_label(self, inst) -> str:
         # Получение текстовой метки типа прибора
