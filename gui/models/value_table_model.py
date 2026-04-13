@@ -144,7 +144,7 @@ class ValueTableModel(QAbstractTableModel):
         if isinstance(variable, VariableMeasured) and column == 2:
             return False
 
-        values = variable.values
+        values = variable.mutable_values()
         errors = variable.get_errors()
 
         try:
