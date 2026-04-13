@@ -19,9 +19,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout,
     QHeaderView, QLabel, QMainWindow, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QStatusBar,
-    QTableView, QTableWidget, QTableWidgetItem, QTreeWidget,
-    QTreeWidgetItem, QVBoxLayout, QWidget)
+    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
+    QStatusBar, QTabWidget, QTableView, QTableWidget,
+    QTableWidgetItem, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -47,9 +48,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.treeExperiment = QTreeWidget(self.centralwidget)
-        QTreeWidgetItem(self.treeExperiment)
-        QTreeWidgetItem(self.treeExperiment)
-        QTreeWidgetItem(self.treeExperiment)
         self.treeExperiment.setObjectName(u"treeExperiment")
         self.treeExperiment.setMaximumSize(QSize(200, 16777215))
 
@@ -107,16 +105,35 @@ class Ui_MainWindow(object):
         self.plotGroup.setObjectName(u"plotGroup")
         self.verticalLayoutPlot = QVBoxLayout(self.plotGroup)
         self.verticalLayoutPlot.setObjectName(u"verticalLayoutPlot")
+        self._plot_layout = QVBoxLayout()
+        self._plot_layout.setObjectName(u"_plot_layout")
+        self._toolbar_layout = QHBoxLayout()
+        self._toolbar_layout.setObjectName(u"_toolbar_layout")
         self._btn_add_tab = QPushButton(self.plotGroup)
         self._btn_add_tab.setObjectName(u"_btn_add_tab")
 
-        self.verticalLayoutPlot.addWidget(self._btn_add_tab)
+        self._toolbar_layout.addWidget(self._btn_add_tab)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self._toolbar_layout.addItem(self.horizontalSpacer)
+
+
+        self._plot_layout.addLayout(self._toolbar_layout)
+
+        self._tab_widget = QTabWidget(self.plotGroup)
+        self._tab_widget.setObjectName(u"_tab_widget")
+
+        self._plot_layout.addWidget(self._tab_widget)
 
         self.plotChartView = QChartView(self.plotGroup)
         self.plotChartView.setObjectName(u"plotChartView")
         self.plotChartView.setMinimumSize(QSize(200, 150))
 
-        self.verticalLayoutPlot.addWidget(self.plotChartView)
+        self._plot_layout.addWidget(self.plotChartView)
+
+
+        self.verticalLayoutPlot.addLayout(self._plot_layout)
 
 
         self.verticalLayoutRight.addWidget(self.plotGroup)
@@ -205,6 +222,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self._tab_widget.setCurrentIndex(-1)
+
+
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
@@ -219,17 +239,6 @@ class Ui_MainWindow(object):
         self.actionAddInstrument.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043f\u0440\u0438\u0431\u043e\u0440", None))
         ___qtreewidgetitem = self.treeExperiment.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442", None))
-
-        __sortingEnabled = self.treeExperiment.isSortingEnabled()
-        self.treeExperiment.setSortingEnabled(False)
-        ___qtreewidgetitem1 = self.treeExperiment.topLevelItem(0)
-        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0440\u0435\u043c\u0435\u043d\u043d\u044b\u0435", None))
-        ___qtreewidgetitem2 = self.treeExperiment.topLevelItem(1)
-        ___qtreewidgetitem2.setText(0, QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u044b", None))
-        ___qtreewidgetitem3 = self.treeExperiment.topLevelItem(2)
-        ___qtreewidgetitem3.setText(0, QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0438\u0431\u043e\u0440\u044b", None))
-        self.treeExperiment.setSortingEnabled(__sortingEnabled)
-
         self.btnPageValues.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0440\u0435\u043c\u0435\u043d\u043d\u044b\u0435", None))
         self.btnPageInstruments.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b", None))
         self.btnPageGraph.setText(QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a\u0438", None))

@@ -90,15 +90,7 @@ class MainWindow(QMainWindow):
         right_layout.removeWidget(self.ui.instrumentsGroup)
 
         nav_widget = QWidget(self.ui.rightPanel)
-        nav_layout = QHBoxLayout(nav_widget)
-        nav_layout.setContentsMargins(0, 0, 0, 0)
 
-
-        nav_layout.addWidget(self.ui.btnPageValues)
-        nav_layout.addWidget(self.ui.btnPageConstants)
-        nav_layout.addWidget(self.ui.btnPageInstruments)
-        nav_layout.addWidget(self.ui.btnPageGraph)
-        nav_layout.addWidget(self.ui.btnPageFormulas)
 
         self.workspacePages = QStackedWidget(self.ui.rightPanel)
 

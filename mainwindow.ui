@@ -101,21 +101,49 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayoutPlot">
           <item>
-           <widget class="QPushButton" name="_btn_add_tab">
-            <property name="text">
-             <string>Создать график</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QChartView" name="plotChartView" native="true">
-            <property name="minimumSize">
-             <size>
-              <width>200</width>
-              <height>150</height>
-             </size>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="_plot_layout">
+            <item>
+             <layout class="QHBoxLayout" name="_toolbar_layout">
+              <item>
+               <widget class="QPushButton" name="_btn_add_tab">
+                <property name="text">
+                 <string>Создать график</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QTabWidget" name="_tab_widget">
+              <property name="currentIndex">
+               <number>-1</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QChartView" name="plotChartView" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>200</width>
+                <height>150</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
