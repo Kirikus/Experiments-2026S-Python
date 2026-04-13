@@ -1,36 +1,23 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from PySide6.QtWidgets import (
     QAbstractItemView,
-    QFileDialog,
-    QInputDialog,
-    QMessageBox,
     QHeaderView,
-    QTreeWidgetItem,
 )
 from PySide6.QtCore import Qt
 
+from gui.controllers.dialog_controller import DialogController
+from gui.controllers.experiment_tree_controller import ExperimentTreeController
 from gui.models import ConstantDetailTableModel, InstrumentTableModel, ValueTableModel
 from gui.views import MainWindow
 from gui.views.item_delegates import FloatValueDelegate
-from gui.views.plot_manager import PlotManager
 from src import (
     Constant,
     Experiment,
     InstrumentAbsolute,
-    InstrumentRelative,
-    VariableCalculated,
     VariableMeasured,
 )
 from src.serializers import ExperimentSerializer
-
-
-VARIABLE_TYPE_MEASURED = "Измеренная (с прибором)"
-VARIABLE_TYPE_CALCULATED = "Вычисленная"
-INSTRUMENT_TYPE_ABSOLUTE = "Абсолютная погрешность"
-INSTRUMENT_TYPE_RELATIVE = "Относительная погрешность (%)"
 
 
 class MainController:
@@ -40,6 +27,8 @@ class MainController:
         self.window = window
         self.experiment = Experiment.get_experiment()
         self._selected_variable = None
+        self._dialogs = DialogController(window, self.experiment)
+        self._tree = ExperimentTreeController(self.window.ui.treeExperiment)
 
         self._setup_tree()
         self._setup_models()
@@ -50,15 +39,7 @@ class MainController:
 
     def _setup_tree(self) -> None:
         # Настройка дерева эксперимента (переменные, константы, приборы)
-        tree = self.window.ui.treeExperiment
-        self._vars_item = QTreeWidgetItem(["Переменные"])
-        self._consts_item = QTreeWidgetItem(["Константы"])
-        self._insts_item = QTreeWidgetItem(["Приборы"])
-
-        tree.addTopLevelItem(self._vars_item)
-        tree.addTopLevelItem(self._consts_item)
-        tree.addTopLevelItem(self._insts_item)
-        tree.expandAll()
+        self._tree.setup()
 
     def _setup_models(self) -> None:
         # Установка моделей таблиц
@@ -98,152 +79,66 @@ class MainController:
 
     def _on_new(self) -> None:
         # Обработчик создания нового эксперимента
-        reply = QMessageBox.question(
-            self.window, "Новый эксперимент", "Очистить текущий эксперимент?"
-        )
-        if reply == QMessageBox.StandardButton.Yes:
+        if self._dialogs.confirm_new_experiment():
             self.experiment.clear()
             self._refresh_tree()
             self.window.ui.statusbar.showMessage("Создан новый эксперимент")
 
     def _on_open(self) -> None:
         # Обработчик открытия эксперимента из файла
-        filename, _ = QFileDialog.getOpenFileName(
-            self.window, "Открыть эксперимент", "", "JSON (*.json)"
-        )
-        if not filename:
+        filepath = self._dialogs.select_open_path()
+        if filepath is None:
             return
 
         serializer = ExperimentSerializer(self.experiment)
-        serializer.load(Path(filename))
+        serializer.load(filepath)
         self._refresh_tree()
-        self.window.ui.statusbar.showMessage(f"Загружен: {filename}")
+        self.window.ui.statusbar.showMessage(f"Загружен: {filepath}")
 
     def _on_save(self) -> None:
         # Обработчик сохранения эксперимента в файл
-        filename, _ = QFileDialog.getSaveFileName(
-            self.window, "Сохранить эксперимент", "", "JSON (*.json)"
-        )
-        if not filename:
+        filepath = self._dialogs.select_save_path()
+        if filepath is None:
             return
 
-        filepath = Path(filename)
         data_dir = filepath.parent / "data"
         serializer = ExperimentSerializer(self.experiment)
         serializer.save(filepath, data_dir)
-        self.window.ui.statusbar.showMessage(f"Сохранён: {filename}")
+        self.window.ui.statusbar.showMessage(f"Сохранён: {filepath}")
 
     def _on_add_variable(self) -> None:
         # Обработчик добавления новой переменной
-        name, ok = QInputDialog.getText(
-            self.window, "Новая переменная", "Имя переменной:"
-        )
-        if not (ok and name):
+        variable = self._dialogs.create_variable()
+        if variable is None:
             return
-
-        if any(existing_var.name == name for existing_var in self.experiment.get_variables()):
-            QMessageBox.warning(self.window, "Ошибка", f"Переменная '{name}' уже существует")
-            return
-
-        types = [VARIABLE_TYPE_MEASURED, VARIABLE_TYPE_CALCULATED]
-        var_type, ok = QInputDialog.getItem(
-            self.window, "Тип переменной", "Выберите тип:", types, 0, False
-        )
-        if not ok:
-            return
-
-        if var_type == VARIABLE_TYPE_MEASURED:
-            instruments = self.experiment.get_instruments()
-            if not instruments:
-                QMessageBox.information(
-                    self.window,
-                    "Нет приборов",
-                    "Сначала добавьте прибор, затем создайте измеряемую переменную.",
-                )
-                return
-
-            instrument_names = [instrument.name for instrument in instruments]
-            instrument_name, ok = QInputDialog.getItem(
-                self.window,
-                "Прибор переменной",
-                "Выберите прибор:",
-                instrument_names,
-                0,
-                False,
-            )
-            if not ok:
-                return
-
-            selected_instrument = next(
-                instrument for instrument in instruments if instrument.name == instrument_name
-            )
-            variable = VariableMeasured(name, selected_instrument)
-        else:
-            variable = VariableCalculated(name)
 
         self.experiment.add_variable(variable)
         self._refresh_tree()
-        self.window.ui.statusbar.showMessage(f"Добавлена переменная: {name}")
+        self.window.ui.statusbar.showMessage(f"Добавлена переменная: {variable.name}")
 
     def _on_add_constant(self) -> None:
         # Обработчик добавления новой константы
-        name, ok = QInputDialog.getText(
-            self.window, "Новая константа", "Имя константы:"
-        )
-        if not (ok and name):
+        constant = self._dialogs.create_constant()
+        if constant is None:
             return
 
-        if any(existing_const.name == name for existing_const in self.experiment.get_constants()):
-            QMessageBox.warning(self.window, "Ошибка", f"Константа '{name}' уже существует")
-            return
-
-        value, ok = QInputDialog.getDouble(
-            self.window, "Значение", "Введите значение:", 0.0, -1e308, 1e308, 6
-        )
-        if not ok:
-            return
-
-        self.experiment.add_constant(Constant(name, value, 0.0, readonly=False))
+        self.experiment.add_constant(constant)
         self._refresh_tree()
-        self.window.ui.statusbar.showMessage(f"Добавлена константа: {name}")
+        self.window.ui.statusbar.showMessage(f"Добавлена константа: {constant.name}")
 
     def _on_add_instrument(self) -> None:
         # Обработчик добавления нового прибора
-        name, ok = QInputDialog.getText(self.window, "Новый прибор", "Имя прибора:")
-        if not (ok and name):
+        instrument = self._dialogs.create_instrument()
+        if instrument is None:
             return
 
-        types = [INSTRUMENT_TYPE_ABSOLUTE, INSTRUMENT_TYPE_RELATIVE]
-        inst_type, ok = QInputDialog.getItem(
-            self.window, "Тип прибора", "Выберите тип:", types, 0, False
-        )
-        if not ok:
-            return
-
-        error, ok = QInputDialog.getDouble(
-            self.window,
-            "Погрешность",
-            "Введите значение:",
-            0.001,
-            0.0,
-            1e308,
-            6,
-        )
-        if not ok:
-            return
-
-        instrument = (
-            InstrumentAbsolute(name, error)
-            if inst_type == INSTRUMENT_TYPE_ABSOLUTE
-            else InstrumentRelative(name, error)
-        )
         self.experiment.add_instrument(instrument)
         self._refresh_tree()
-        self.window.ui.statusbar.showMessage(f"Добавлен прибор: {name}")
+        self.window.ui.statusbar.showMessage(f"Добавлен прибор: {instrument.name}")
 
     def _on_tree_item_clicked(self, item, column) -> None:
         # Обработчик клика по элементу дерева эксперимента
-        role_data = item.data(0, Qt.UserRole)
+        role_data = self._tree.resolve_entity(item)
         if role_data is None:
             return
 
@@ -312,24 +207,6 @@ class MainController:
 
     def _refresh_tree(self, refresh_instrument_model: bool = True) -> None:
         # Обновление дерева эксперимента и таблицы приборов
-        for item in (self._vars_item, self._consts_item, self._insts_item):
-            item.takeChildren()
-
-        for var in self.experiment.get_variables():
-            variable_item = QTreeWidgetItem([var.name])
-            variable_item.setData(0, Qt.UserRole, ("variable", var))
-            self._vars_item.addChild(variable_item)
-
-        for const in self.experiment.get_constants():
-            constant_item = QTreeWidgetItem([const.name])
-            constant_item.setData(0, Qt.UserRole, ("constant", const))
-            self._consts_item.addChild(constant_item)
-
-        for inst in self.experiment.get_instruments():
-            instrument_item = QTreeWidgetItem([inst.name])
-            instrument_item.setData(0, Qt.UserRole, ("instrument", inst))
-            self._insts_item.addChild(instrument_item)
-
-        self.window.ui.treeExperiment.expandAll()
+        self._tree.refresh(self.experiment)
         if refresh_instrument_model:
             self.instrument_table_model.refresh()
