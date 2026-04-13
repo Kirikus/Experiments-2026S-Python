@@ -3,14 +3,8 @@
 import csv
 from pathlib import Path
 
+from .cell_utils import normalize_cell
 from .table_data import TableData
-
-
-def _normalize_cell(cell: str) -> str:
-    """Normalize one cell to satisfy the required CSV format contract."""
-    if cell == "":
-        return " "
-    return cell
 
 
 class CSVTableAdapter:
@@ -43,7 +37,7 @@ class CSVTableAdapter:
             if len(row) < header_len:
                 row = row + [" "] * (header_len - len(row))
 
-            normalized_rows.append([_normalize_cell(cell) for cell in row])
+            normalized_rows.append([normalize_cell(cell) for cell in row])
 
         return TableData(headers=headers, rows=normalized_rows)
 
@@ -57,4 +51,4 @@ class CSVTableAdapter:
             writer.writerow(table.headers)
 
             for row in table.rows:
-                writer.writerow([_normalize_cell(cell) for cell in row])
+                writer.writerow([normalize_cell(cell) for cell in row])

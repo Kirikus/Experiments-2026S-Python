@@ -4,18 +4,8 @@
       {
         "name": "measurements",
         "type": "measured",
-        "csv_file": "data/measurements.csv",
-        "measurement_types": ["length", "mass", "density"]
-      }
-    {
-      "data_file": "data/measurements.csv",
-      "description": "Объединённые измерения: плотность, длина, масса"
-    }
-        "readonly": false
-      {
-        "data_file": "data/measurements.csv",
-        "description": "Объединённые измерения: плотность, длина, масса"
-      }
+        "measurement_type": "length",
+        "csv_file": "data/measurements.csv"
       }
     ],
     "instruments": [
@@ -29,6 +19,8 @@
         "type": "relative",
         "error_value": 0.5
       }
-    ]
+    ],
+    "data_file": "data/measurements.csv",
+    "description": "Объединённые измерения: плотность, длина, масса"
   }
 }
