@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from pathlib import Path
 
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QMessageBox
@@ -7,10 +8,14 @@ from PySide6.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 from src import Constant, Experiment, InstrumentAbsolute, InstrumentRelative, VariableCalculated, VariableMeasured
 
 
-VARIABLE_TYPE_MEASURED = "Измеренная (с прибором)"
-VARIABLE_TYPE_CALCULATED = "Вычисленная"
-INSTRUMENT_TYPE_ABSOLUTE = "Абсолютная погрешность"
-INSTRUMENT_TYPE_RELATIVE = "Относительная погрешность (%)"
+class VariableKind(Enum):
+    MEASURED = "Измеренная (с прибором)"
+    CALCULATED = "Вычисленная"
+
+
+class InstrumentKind(Enum):
+    ABSOLUTE = "Абсолютная погрешность"
+    RELATIVE = "Относительная погрешность (%)"
 
 
 class DialogController:
@@ -51,14 +56,14 @@ class DialogController:
             self.window,
             "Тип переменной",
             "Выберите тип:",
-            [VARIABLE_TYPE_MEASURED, VARIABLE_TYPE_CALCULATED],
+            [kind.value for kind in VariableKind],
             0,
             False,
         )
         if not ok:
             return None
 
-        if var_type == VARIABLE_TYPE_CALCULATED:
+        if var_type == VariableKind.CALCULATED.value:
             return VariableCalculated(name)
 
         instruments = self.experiment.get_instruments()
@@ -112,7 +117,7 @@ class DialogController:
             self.window,
             "Тип прибора",
             "Выберите тип:",
-            [INSTRUMENT_TYPE_ABSOLUTE, INSTRUMENT_TYPE_RELATIVE],
+            [kind.value for kind in InstrumentKind],
             0,
             False,
         )
@@ -131,6 +136,6 @@ class DialogController:
         if not ok:
             return None
 
-        if inst_type == INSTRUMENT_TYPE_ABSOLUTE:
+        if inst_type == InstrumentKind.ABSOLUTE.value:
             return InstrumentAbsolute(name, error)
         return InstrumentRelative(name, error)
