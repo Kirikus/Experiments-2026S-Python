@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
         self.constantsTable.verticalHeader().setVisible(False)
         self.ui.tableInstruments.verticalHeader().setVisible(False)
 
-        self.plot_manager = PlotManager(self.ui.plotChartView, self.ui)
+        self.plot_manager = PlotManager(self.ui)
         self.show_variables_page()
 
     def _set_active_page(self, page_key: str) -> None:

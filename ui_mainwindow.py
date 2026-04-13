@@ -8,7 +8,6 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCharts import QChartView
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
@@ -19,9 +18,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout,
     QHeaderView, QLabel, QMainWindow, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QStackedWidget,
-    QStatusBar, QTableView, QTreeWidget, QTreeWidgetItem,
-    QVBoxLayout, QWidget)
+    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
+    QStackedWidget, QStatusBar, QTabWidget, QTableView,
+    QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -162,16 +161,30 @@ class Ui_MainWindow(object):
         self.plotGroup.setObjectName(u"plotGroup")
         self.verticalLayoutPlot = QVBoxLayout(self.plotGroup)
         self.verticalLayoutPlot.setObjectName(u"verticalLayoutPlot")
+        self.plotToolbarLayout = QHBoxLayout()
+        self.plotToolbarLayout.setObjectName(u"plotToolbarLayout")
+        self.btnGetGraph = QPushButton(self.plotGroup)
+        self.btnGetGraph.setObjectName(u"btnGetGraph")
+
+        self.plotToolbarLayout.addWidget(self.btnGetGraph)
+
         self._btn_add_tab = QPushButton(self.plotGroup)
         self._btn_add_tab.setObjectName(u"_btn_add_tab")
 
-        self.verticalLayoutPlot.addWidget(self._btn_add_tab)
+        self.plotToolbarLayout.addWidget(self._btn_add_tab)
 
-        self.plotChartView = QChartView(self.plotGroup)
-        self.plotChartView.setObjectName(u"plotChartView")
-        self.plotChartView.setMinimumSize(QSize(200, 150))
+        self.plotToolbarSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.verticalLayoutPlot.addWidget(self.plotChartView)
+        self.plotToolbarLayout.addItem(self.plotToolbarSpacer)
+
+
+        self.verticalLayoutPlot.addLayout(self.plotToolbarLayout)
+
+        self.plotTabs = QTabWidget(self.plotGroup)
+        self.plotTabs.setObjectName(u"plotTabs")
+        self.plotTabs.setMinimumSize(QSize(200, 150))
+
+        self.verticalLayoutPlot.addWidget(self.plotTabs)
 
 
         self.graphLayout.addWidget(self.plotGroup)
@@ -279,7 +292,8 @@ class Ui_MainWindow(object):
         self.btnPageFormulas.setText(QCoreApplication.translate("MainWindow", u"\u0424\u043e\u0440\u043c\u0443\u043b\u044b", None))
         self.instrumentsGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0438\u0431\u043e\u0440\u044b", None))
         self.plotGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a", None))
-        self._btn_add_tab.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0433\u0440\u0430\u0444\u0438\u043a", None))
+        self.btnGetGraph.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0433\u0440\u0430\u0444\u0438\u043a", None))
+        self._btn_add_tab.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0432\u043a\u043b\u0430\u0434\u043a\u0443", None))
         self.formulas_hint.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u0433\u043b\u0443\u0448\u043a\u0430: \u0437\u0434\u0435\u0441\u044c \u0431\u0443\u0434\u0435\u0442 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0438 \u0441\u043f\u0438\u0441\u043e\u043a \u0444\u043e\u0440\u043c\u0443\u043b.", None))
         self.infoGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f", None))
         self.labelName.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f:", None))
