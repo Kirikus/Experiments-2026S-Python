@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>622</height>
+    <width>746</width>
+    <height>869</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -101,6 +101,13 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayoutPlot">
           <item>
+           <widget class="QPushButton" name="_btn_add_tab">
+            <property name="text">
+             <string>Создать график</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QChartView" name="plotChartView" native="true">
             <property name="minimumSize">
              <size>
@@ -180,6 +187,13 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QLabel" name="formulas_hint">
+         <property name="text">
+          <string>Заглушка: здесь будет редактор и список формул.</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -190,8 +204,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>26</height>
+     <width>746</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from ui_mainwindow import Ui_MainWindow
 from PySide6.QtCore import QLocale, Qt
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QComboBox, QLineEdit, QStyledItemDelegate, QWidget

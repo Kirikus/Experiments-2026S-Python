@@ -27,7 +27,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(800, 622)
+        MainWindow.resize(746, 869)
         self.actionNew = QAction(MainWindow)
         self.actionNew.setObjectName(u"actionNew")
         self.actionOpen = QAction(MainWindow)
@@ -47,6 +47,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.treeExperiment = QTreeWidget(self.centralwidget)
+        QTreeWidgetItem(self.treeExperiment)
+        QTreeWidgetItem(self.treeExperiment)
+        QTreeWidgetItem(self.treeExperiment)
         self.treeExperiment.setObjectName(u"treeExperiment")
         self.treeExperiment.setMaximumSize(QSize(200, 16777215))
 
@@ -104,6 +107,11 @@ class Ui_MainWindow(object):
         self.plotGroup.setObjectName(u"plotGroup")
         self.verticalLayoutPlot = QVBoxLayout(self.plotGroup)
         self.verticalLayoutPlot.setObjectName(u"verticalLayoutPlot")
+        self._btn_add_tab = QPushButton(self.plotGroup)
+        self._btn_add_tab.setObjectName(u"_btn_add_tab")
+
+        self.verticalLayoutPlot.addWidget(self._btn_add_tab)
+
         self.plotChartView = QChartView(self.plotGroup)
         self.plotChartView.setObjectName(u"plotChartView")
         self.plotChartView.setMinimumSize(QSize(200, 150))
@@ -163,13 +171,18 @@ class Ui_MainWindow(object):
 
         self.verticalLayoutRight.addWidget(self.infoGroup)
 
+        self.formulas_hint = QLabel(self.rightPanel)
+        self.formulas_hint.setObjectName(u"formulas_hint")
+
+        self.verticalLayoutRight.addWidget(self.formulas_hint)
+
 
         self.horizontalLayout.addWidget(self.rightPanel)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 26))
+        self.menubar.setGeometry(QRect(0, 0, 746, 25))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuExperiment = QMenu(self.menubar)
@@ -206,6 +219,17 @@ class Ui_MainWindow(object):
         self.actionAddInstrument.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043f\u0440\u0438\u0431\u043e\u0440", None))
         ___qtreewidgetitem = self.treeExperiment.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442", None))
+
+        __sortingEnabled = self.treeExperiment.isSortingEnabled()
+        self.treeExperiment.setSortingEnabled(False)
+        ___qtreewidgetitem1 = self.treeExperiment.topLevelItem(0)
+        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0440\u0435\u043c\u0435\u043d\u043d\u044b\u0435", None))
+        ___qtreewidgetitem2 = self.treeExperiment.topLevelItem(1)
+        ___qtreewidgetitem2.setText(0, QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u044b", None))
+        ___qtreewidgetitem3 = self.treeExperiment.topLevelItem(2)
+        ___qtreewidgetitem3.setText(0, QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0438\u0431\u043e\u0440\u044b", None))
+        self.treeExperiment.setSortingEnabled(__sortingEnabled)
+
         self.btnPageValues.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0440\u0435\u043c\u0435\u043d\u043d\u044b\u0435", None))
         self.btnPageInstruments.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b", None))
         self.btnPageGraph.setText(QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a\u0438", None))
@@ -218,6 +242,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem2 = self.tableValues.horizontalHeaderItem(2)
         ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u044c", None))
         self.plotGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a", None))
+        self._btn_add_tab.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0433\u0440\u0430\u0444\u0438\u043a", None))
         self.instrumentsGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0438\u0431\u043e\u0440\u044b", None))
         self.infoGroup.setTitle(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f", None))
         self.labelName.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f:", None))
@@ -226,6 +251,7 @@ class Ui_MainWindow(object):
         self.valueType.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.labelCount.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e:", None))
         self.valueCount.setText(QCoreApplication.translate("MainWindow", u"-", None))
+        self.formulas_hint.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u0433\u043b\u0443\u0448\u043a\u0430: \u0437\u0434\u0435\u0441\u044c \u0431\u0443\u0434\u0435\u0442 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0438 \u0441\u043f\u0438\u0441\u043e\u043a \u0444\u043e\u0440\u043c\u0443\u043b.", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"\u0424\u0430\u0439\u043b", None))
         self.menuExperiment.setTitle(QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u0435\u0440\u0438\u043c\u0435\u043d\u0442", None))
     # retranslateUi
