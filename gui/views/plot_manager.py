@@ -1,54 +1,171 @@
-"""Управление набором plot-графиков во вкладках внутри существующего блока графика."""
+"""Управление набором графических вкладок внутри блока графика."""
 
 from __future__ import annotations
-from ui_mainwindow import Ui_MainWindow
-from dataclasses import dataclass
-from typing import List
-from ui_mainwindow import Ui_MainWindow
+
+from abc import ABC, abstractmethod
+from typing import Any
+
 import pyqtgraph as pg
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
+    QLabel,
     QPushButton,
+    QStackedWidget,
     QTabWidget,
     QVBoxLayout,
     QWidget,
 )
 
+from gui.views.plots import ApproximationPlot, CorrelogramPlot, HistogramPlot, LinePlot, ScatterPlot
 
-@dataclass
-class _PlotTab:
-    plot_widget: pg.PlotWidget
-    combo_type: QComboBox
-    tab_title: str
+
+class PlotTab(ABC):
+    """Абстрактная вкладка с общим UI и методом отрисовки графика."""
+
+    graph_label: str = "График"
+
+    def __init__(self, tab_title: str) -> None:
+        self.tab_title = tab_title
+
+        self.widget = QWidget()
+        self._layout = QVBoxLayout(self.widget)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+
+        self.combo_type = QComboBox(self.widget)
+        self.combo_type.addItems(["График", "Сообщение"])
+        self.combo_type.currentIndexChanged.connect(self._sync_stack)
+
+        self.stacked_widget = QStackedWidget(self.widget)
+
+        self._plot_page = QWidget(self.stacked_widget)
+        self._plot_layout = QVBoxLayout(self._plot_page)
+        self._plot_layout.setContentsMargins(0, 0, 0, 0)
+        self.plot_widget = pg.PlotWidget(self._plot_page)
+        self.plot_widget.setBackground("w")
+        self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
+        self._plot_layout.addWidget(self.plot_widget)
+
+        self._message_page = QWidget(self.stacked_widget)
+        self._message_layout = QVBoxLayout(self._message_page)
+        self._message_layout.setContentsMargins(0, 0, 0, 0)
+        self._message_label = QLabel("", self._message_page)
+        self._message_label.setWordWrap(True)
+        self._message_layout.addWidget(self._message_label)
+
+        self.stacked_widget.addWidget(self._plot_page)
+        self.stacked_widget.addWidget(self._message_page)
+
+        self._layout.addWidget(self.combo_type)
+        self._layout.addWidget(self.stacked_widget)
+
+        self._source_variable: Any | None = None
+        self._sync_stack()
+
+    def set_source_variable(self, variable: Any | None) -> None:
+        self._source_variable = variable
+
+    def _sync_stack(self, *_args: object) -> None:
+        self.stacked_widget.setCurrentIndex(0 if self.combo_type.currentIndex() == 0 else 1)
+
+    @abstractmethod
+    def plot(self) -> None:
+        """Отрисовать содержимое вкладки для текущего источника данных."""
+
+
+class _SinglePlotTab(PlotTab):
+    """Базовая реализация вкладки для конкретного типа графика."""
+
+    plot_class: Any
+
+    def __init__(self, tab_title: str) -> None:
+        super().__init__(tab_title)
+        self._plot_impl = self.plot_class()
+
+    def plot(self) -> None:
+        if self._source_variable is None:
+            self._message_label.setText("Выберите переменную и нажмите «Получить график»")
+            self.combo_type.setCurrentIndex(1)
+            return
+
+        values = list(self._source_variable.values)
+        if not values:
+            self._message_label.setText(f"{self.tab_title}: нет данных")
+            self.combo_type.setCurrentIndex(1)
+            return
+
+        self.plot_widget.clear()
+        self.plot_widget.setTitle("")
+        self.plot_widget.getPlotItem().legend = None
+        try:
+            self._plot_impl.plot(self.plot_widget, values)
+        except ValueError as exc:
+            self._message_label.setText(str(exc))
+            self.combo_type.setCurrentIndex(1)
+            return
+
+        self.combo_type.setCurrentIndex(0)
+        self.plot_widget.setTitle(f"{self.tab_title} ({self.graph_label})")
+        self.plot_widget.setLabel("bottom", self._plot_impl.x_label)
+        self.plot_widget.setLabel("left", self._plot_impl.y_label)
+
+
+class ScatterPlotTab(_SinglePlotTab):
+    graph_label = "Точки"
+    plot_class = ScatterPlot
+
+
+class LinePlotTab(_SinglePlotTab):
+    graph_label = "Линия"
+    plot_class = LinePlot
+
+
+class HistogramPlotTab(_SinglePlotTab):
+    graph_label = "Гистограмма"
+    plot_class = HistogramPlot
+
+
+class ApproximationPlotTab(_SinglePlotTab):
+    graph_label = "Аппроксимация"
+    plot_class = ApproximationPlot
+
+
+class CorrelogramPlotTab(_SinglePlotTab):
+    graph_label = "Коррелограмма"
+    plot_class = CorrelogramPlot
 
 
 class PlotManager:
-    """Менеджер вкладок графиков с выбором типа построения для каждой вкладки."""
+    """Менеджер вкладок графиков."""
 
-    _PLOT_TYPES = [
-        ("Точки", "scatter"),
-        ("Линия", "line"),
-        ("Гистограмма", "histogram"),
-        ("Аппроксимация", "approximation"),
+    _TAB_CLASSES = [
+        ScatterPlotTab,
+        LinePlotTab,
+        HistogramPlotTab,
+        ApproximationPlotTab,
+        CorrelogramPlotTab,
     ]
 
     def __init__(self, placeholder_widget: QWidget, ui) -> None:
         self._plot_group = placeholder_widget.parentWidget()
         self.ui = ui
         self._plot_layout = self._plot_group.layout()
-        self._current_values: List[float] = []
-        self._current_title: str = "График"
-        self._tabs: List[_PlotTab] = []
+        self._source_variable: Any | None = None
+        self._tabs: list[PlotTab] = []
 
         self._toolbar_widget = QWidget(self._plot_group)
-        self._toolbar_layout = QHBoxLayout(self._toolbar_widget)
-        self._toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        toolbar_layout = QHBoxLayout(self._toolbar_widget)
+        toolbar_layout.setContentsMargins(0, 0, 0, 0)
 
-        
+        btn_get_graph = QPushButton("Получить график", self._plot_group)
+        btn_get_graph.clicked.connect(self.refresh_graph)
+
+        self.ui._btn_add_tab.setText("Добавить вкладку")
         self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)
-        self._toolbar_layout.addWidget(self.ui._btn_add_tab)
-        self._toolbar_layout.addStretch()
+
+        toolbar_layout.addWidget(btn_get_graph)
+        toolbar_layout.addWidget(self.ui._btn_add_tab)
+        toolbar_layout.addStretch()
 
         self._tab_widget = QTabWidget(self._plot_group)
         self._tab_widget.setTabsClosable(True)
@@ -58,36 +175,27 @@ class PlotManager:
         placeholder_widget.deleteLater()
         self._plot_layout.addWidget(self._toolbar_widget)
         self._plot_layout.addWidget(self._tab_widget)
-
         self.add_plot_tab()
 
+    def set_source_variable(self, variable: Any | None) -> None:
+        self._source_variable = variable
+        for plot_tab in self._tabs:
+            plot_tab.set_source_variable(variable)
+
+    def refresh_graph(self) -> None:
+        for plot_tab in self._tabs:
+            plot_tab.plot()
+
     def add_plot_tab(self) -> None:
-        tab_content = QWidget(self._tab_widget)
-        tab_layout = QVBoxLayout(tab_content)
-        tab_layout.setContentsMargins(0, 0, 0, 0)
-
-        combo = QComboBox(tab_content)
-        for label, key in self._PLOT_TYPES:
-            combo.addItem(label, key)
-        tab_layout.addWidget(combo)
-
-        plot_widget = pg.PlotWidget(tab_content)
-        plot_widget.setBackground("w")
-        plot_widget.showGrid(x=True, y=True, alpha=0.2)
-        tab_layout.addWidget(plot_widget)
-
-        tab_index = self._tab_widget.addTab(tab_content, f"График {self._tab_widget.count() + 1}")
-        self._tab_widget.setCurrentIndex(tab_index)
-
-        plot_tab = _PlotTab(
-            plot_widget=plot_widget,
-            combo_type=combo,
-            tab_title=f"График {tab_index + 1}",
-        )
+        tab_index = self._tab_widget.count()
+        tab_cls = self._TAB_CLASSES[tab_index % len(self._TAB_CLASSES)]
+        plot_tab = tab_cls(f"График {tab_index + 1}")
+        plot_tab.set_source_variable(self._source_variable)
         self._tabs.append(plot_tab)
 
-        combo.currentIndexChanged.connect(lambda _i, t=plot_tab: self._render_tab(t))
-        self._render_tab(plot_tab)
+        self._tab_widget.addTab(plot_tab.widget, f"{plot_tab.graph_label} {tab_index + 1}")
+        self._tab_widget.setCurrentIndex(tab_index)
+        plot_tab.plot()
 
     def _on_tab_close_requested(self, tab_index: int) -> None:
         if self._tab_widget.count() <= 1:
@@ -101,120 +209,5 @@ class PlotManager:
         self._tabs.pop(tab_index)
 
     def clear(self) -> None:
-        self._current_values = []
-        self._current_title = "График"
         for plot_tab in self._tabs:
-            self._render_tab(plot_tab)
-
-    def plot_scatter(self, values: List[float], title: str = "График") -> None:
-        # Сохраняем данные, а каждый таб сам рисует выбранный им тип графика.
-        self._current_values = values.copy()
-        self._current_title = title
-        for plot_tab in self._tabs:
-            self._render_tab(plot_tab)
-
-    def _render_tab(self, plot_tab: _PlotTab) -> None:
-        plot_type = plot_tab.combo_type.currentData()
-        pw = plot_tab.plot_widget
-        pw.clear()
-        pw.setTitle("")
-        pw.getPlotItem().legend = None
-
-        values = self._current_values
-        if not values:
-            pw.setTitle("График пуст (нет данных)")
-            return
-
-        if plot_type == "scatter":
-            self._draw_scatter(pw, values)
-        elif plot_type == "line":
-            self._draw_line(pw, values)
-        elif plot_type == "histogram":
-            self._draw_histogram(pw, values, bins=10)
-        elif plot_type == "approximation":
-            if len(values) < 2:
-                pw.setTitle("Для аппроксимации нужно минимум 2 точки")
-                return
-            self._draw_approximation(pw, values)
-
-        pw.setTitle(f"{self._current_title} ({plot_tab.combo_type.currentText()})")
-        pw.setLabel("bottom", "Индекс")
-        pw.setLabel("left", "Значение")
-
-    def _draw_scatter(self, plot_widget: pg.PlotWidget, values: List[float]) -> None:
-        x_values = list(range(len(values)))
-        plot_widget.plot(
-            x_values,
-            values,
-            pen=None,
-            symbol="o",
-            symbolSize=8,
-            symbolBrush=(0, 122, 204),
-            symbolPen=(0, 122, 204),
-            name="Значения",
-        )
-
-    def _draw_line(self, plot_widget: pg.PlotWidget, values: List[float]) -> None:
-        x_values = list(range(len(values)))
-        plot_widget.plot(
-            x_values,
-            values,
-            pen=pg.mkPen(color=(0, 122, 204), width=2),
-            name="Значения",
-        )
-
-    def _draw_histogram(self, plot_widget: pg.PlotWidget, values: List[float], bins: int) -> None:
-        min_val = min(values)
-        max_val = max(values)
-        bin_width = (max_val - min_val) / bins if max_val > min_val else 1.0
-
-        hist = [0] * bins
-        for value in values:
-            bin_index = int((value - min_val) / bin_width)
-            bin_index = min(bin_index, bins - 1)
-            hist[bin_index] += 1
-
-        x_points = []
-        y_points = []
-        for i, count in enumerate(hist):
-            x = min_val + (i + 0.5) * bin_width
-            x_points.append(x)
-            y_points.append(count)
-
-        bars = pg.BarGraphItem(x=x_points, height=y_points, width=bin_width * 0.9, brush=(204, 122, 0))
-        plot_widget.addItem(bars)
-
-    def _draw_approximation(self, plot_widget: pg.PlotWidget, values: List[float]) -> None:
-        n = len(values)
-        x_values = list(range(n))
-
-        sum_x = sum(x_values)
-        sum_y = sum(values)
-        sum_xy = sum(x * y for x, y in zip(x_values, values))
-        sum_x2 = sum(x * x for x in x_values)
-
-        denominator = n * sum_x2 - sum_x * sum_x
-        if denominator == 0:
-            a, b = 0.0, sum_y / n
-        else:
-            a = (n * sum_xy - sum_x * sum_y) / denominator
-            b = (sum_y - a * sum_x) / n
-
-        y_approx = [a * i + b for i in x_values]
-
-        plot_widget.plot(
-            x_values,
-            values,
-            pen=None,
-            symbol="o",
-            symbolSize=6,
-            symbolBrush=(0, 122, 204),
-            symbolPen=(0, 122, 204),
-            name="Исходные данные",
-        )
-        plot_widget.plot(
-            x_values,
-            y_approx,
-            pen=pg.mkPen(color=(204, 0, 0), width=2),
-            name=f"Линия тренда (y = {a:.3f}*x + {b:.3f})",
-        )
+            plot_tab.plot()
