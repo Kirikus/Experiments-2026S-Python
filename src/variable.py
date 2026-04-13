@@ -3,12 +3,16 @@ Variable classes for storing measurement data.
 """
 
 import csv
+import logging
 from pathlib import Path
 from typing import List, Optional, TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 if TYPE_CHECKING:
     from .instrument import Instrument
+
+
+logger = logging.getLogger(__name__)
 
 
 class Variable(ABC):
@@ -122,6 +126,7 @@ class Variable(ABC):
         с соответствующим значением столбца measurement_type.
         """
         values: List[float] = []
+        skipped_invalid = 0
 
         if hasattr(self, "errors"):
             self.errors = []
@@ -139,16 +144,30 @@ class Variable(ABC):
                 if value_cell in {"", Variable._MISSING_CELL}:
                     continue
 
-                values.append(float(value_cell))
+                try:
+                    values.append(float(value_cell))
+                except ValueError:
+                    skipped_invalid += 1
+                    continue
 
                 error_cell = (row.get("error") or "").strip()
                 if (
                     hasattr(self, "add_error")
                     and error_cell not in {"", Variable._MISSING_CELL}
                 ):
-                    self.add_error(float(error_cell))
+                    try:
+                        self.add_error(float(error_cell))
+                    except ValueError:
+                        skipped_invalid += 1
 
         self.set_values(values)
+        if skipped_invalid:
+            logger.warning(
+                "Skipped %d invalid CSV cells while reading variable '%s' from %s",
+                skipped_invalid,
+                self._name,
+                filepath,
+            )
 
     @abstractmethod
     def serialize(self) -> dict:

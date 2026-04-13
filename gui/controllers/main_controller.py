@@ -67,6 +67,9 @@ class MainController:
 
         self.value_table_model = ValueTableModel()
         self.window.ui.tableValues.setModel(self.value_table_model)
+        self.value_table_model.validationFailed.connect(
+            lambda message: self.window.ui.statusbar.showMessage(message, 4000)
+        )
 
         self.constant_table_model = ConstantDetailTableModel()
         self.window.constantsTable.setModel(self.constant_table_model)

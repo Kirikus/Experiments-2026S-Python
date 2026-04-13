@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 
 from src import VariableCalculated, VariableMeasured
 
@@ -8,11 +8,14 @@ from src import VariableCalculated, VariableMeasured
 class ValueTableModel(QAbstractTableModel):
     """Модель правой таблицы значений/погрешностей для выбранной сущности."""
 
+    validationFailed = Signal(str)
+
     def __init__(self) -> None:
         super().__init__()
         self._entity_type: str | None = None
         self._entity = None
         self._headers = ["N", "Значение", "Погрешность"]
+        self._last_validation_error: str = ""
 
     def clear(self) -> None:
         self.set_entity(None, None)
@@ -160,6 +163,7 @@ class ValueTableModel(QAbstractTableModel):
                     elif row == len(values):
                         values.append(number)
                     else:
+                        self._emit_validation_error("Нельзя пропускать строки при вводе значений")
                         return False
 
                 variable.set_values(values)
@@ -174,6 +178,7 @@ class ValueTableModel(QAbstractTableModel):
                 number = 0.0 if text == "" else float(text.replace(",", "."))
 
                 if row >= len(values):
+                    self._emit_validation_error("Сначала добавьте значение, затем задайте погрешность")
                     return False
 
                 if len(errors) < len(values):
@@ -182,10 +187,16 @@ class ValueTableModel(QAbstractTableModel):
                 variable.errors = errors
 
             self.refresh()
+            self._last_validation_error = ""
             return True
 
         except ValueError:
+            self._emit_validation_error("Введите корректное число")
             return False
+
+    def _emit_validation_error(self, message: str) -> None:
+        self._last_validation_error = message
+        self.validationFailed.emit(message)
 
     def headerData(
         self,
