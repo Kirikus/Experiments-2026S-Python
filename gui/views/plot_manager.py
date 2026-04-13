@@ -1,10 +1,10 @@
 """Управление набором plot-графиков во вкладках внутри существующего блока графика."""
 
 from __future__ import annotations
-
+from ui_mainwindow import Ui_MainWindow
 from dataclasses import dataclass
 from typing import List
-
+from ui_mainwindow import Ui_MainWindow
 import pyqtgraph as pg
 from PySide6.QtWidgets import (
     QComboBox,
@@ -33,8 +33,9 @@ class PlotManager:
         ("Аппроксимация", "approximation"),
     ]
 
-    def __init__(self, placeholder_widget: QWidget) -> None:
+    def __init__(self, placeholder_widget: QWidget, ui) -> None:
         self._plot_group = placeholder_widget.parentWidget()
+        self.ui = ui
         self._plot_layout = self._plot_group.layout()
         self._current_values: List[float] = []
         self._current_title: str = "График"
@@ -44,9 +45,9 @@ class PlotManager:
         self._toolbar_layout = QHBoxLayout(self._toolbar_widget)
         self._toolbar_layout.setContentsMargins(0, 0, 0, 0)
 
-        self._btn_add_tab = QPushButton("Создать график", self._toolbar_widget)
-        self._btn_add_tab.clicked.connect(self.add_plot_tab)
-        self._toolbar_layout.addWidget(self._btn_add_tab)
+        
+        self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)
+        self._toolbar_layout.addWidget(self.ui._btn_add_tab)
         self._toolbar_layout.addStretch()
 
         self._tab_widget = QTabWidget(self._plot_group)

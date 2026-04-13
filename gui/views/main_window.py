@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         self.ui.tableInstruments.verticalHeader().setVisible(False)
 
         # Инициализируем менеджер графиков
-        self.plot_manager = PlotManager(self.ui.plotChartView)
+        self.plot_manager = PlotManager(self.ui.plotChartView, self.ui)
         self.show_variables_page()
 
     def _setup_page_nav_styles(self) -> None:
@@ -139,9 +139,9 @@ class MainWindow(QMainWindow):
         formulas_layout = QVBoxLayout(formulas_page)
         formulas_layout.setContentsMargins(8, 8, 8, 8)
 
-        formulas_hint = QLabel("Заглушка: здесь будет редактор и список формул.", formulas_page)
-        formulas_hint.setWordWrap(True)
-        formulas_layout.addWidget(formulas_hint)
+        
+        self.ui.formulas_hint.setWordWrap(True)
+        formulas_layout.addWidget(self.ui.formulas_hint)
         self.workspacePages.addWidget(formulas_page)
 
         self._page_indices = {
