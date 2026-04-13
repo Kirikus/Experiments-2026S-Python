@@ -4,6 +4,7 @@ Variable classes for storing measurement data.
 
 import csv
 import logging
+from collections.abc import Sequence
 from pathlib import Path
 from typing import List, Optional, TYPE_CHECKING
 from abc import ABC, abstractmethod
@@ -13,6 +14,19 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+class _ListView(Sequence[float]):
+    """Лёгкое неизменяемое представление списка без копирования."""
+
+    def __init__(self, data: List[float]) -> None:
+        self._data = data
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __getitem__(self, index):
+        return self._data[index]
 
 
 class Variable(ABC):
@@ -32,6 +46,7 @@ class Variable(ABC):
         """
         self._name: str = name
         self._values: List[float] = []
+        self._values_view: Sequence[float] = _ListView(self._values)
         self._measurement_type: Optional[str] = None
 
     _MISSING_CELL = " "
@@ -47,21 +62,23 @@ class Variable(ABC):
         self._name = value
 
     @property
-    def values(self) -> List[float]:
+    def values(self) -> Sequence[float]:
         """
-        Получить копию списка значений.
+        Получить неизменяемое представление списка значений без копирования.
+        """
+        return self._values_view
 
-        Возвращает копию, чтобы внешний код не мог мутировать внутреннее состояние.
-        """
-        return self._values.copy()
+    def mutable_values(self) -> List[float]:
+        """Получить изменяемый список значений для внутренних операций."""
+        return self._values
 
     def add_value(self, value: float) -> None:
         """Добавить значение к списку."""
         self._values.append(value)
 
     def set_values(self, values: List[float]) -> None:
-        """Установить список значений целиком (копируется)."""
-        self._values = values.copy()
+        """Установить список значений целиком без смены внутренней ссылки."""
+        self._values[:] = values
 
     def count(self) -> int:
         """Получить N — количество измерений."""
