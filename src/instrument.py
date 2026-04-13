@@ -4,6 +4,7 @@ Instrument classes for measurement error calculation.
 
 from abc import ABC, abstractmethod
 from typing import Optional
+import warnings
 
 
 class Instrument(ABC):
@@ -102,6 +103,7 @@ class InstrumentRelative(Instrument):
         :param name: Имя прибора.
         :param relative_error_percent: Относительная погрешность в процентах.
         """
+        self._validate_relative_error(relative_error_percent)
         super().__init__(name, relative_error_percent)
 
     @property
@@ -112,7 +114,15 @@ class InstrumentRelative(Instrument):
     @relative_error_percent.setter
     def relative_error_percent(self, value: float) -> None:
         """Установить относительную погрешность в процентах."""
+        self._validate_relative_error(value)
         self._error_value = value
+
+    @staticmethod
+    def _validate_relative_error(value: float) -> None:
+        if value < 0:
+            raise ValueError("Relative error cannot be negative")
+        if value > 100:
+            warnings.warn("Relative error > 100% seems unusual", stacklevel=2)
 
     def get_error(self, value: Optional[float] = None) -> float:
         """

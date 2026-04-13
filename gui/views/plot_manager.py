@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import pyqtgraph as pg
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -152,6 +153,10 @@ class PlotManager:
         self._plot_layout = self._plot_group.layout()
         self._source_variable: Any | None = None
         self._tabs: list[PlotTab] = []
+        self._refresh_timer = QTimer(self._plot_group)
+        self._refresh_timer.setSingleShot(True)
+        self._refresh_timer.setInterval(120)
+        self._refresh_timer.timeout.connect(self._refresh_graph_now)
 
         self._toolbar_widget = QWidget(self._plot_group)
         toolbar_layout = QHBoxLayout(self._toolbar_widget)
@@ -183,6 +188,9 @@ class PlotManager:
             plot_tab.set_source_variable(variable)
 
     def refresh_graph(self) -> None:
+        self._refresh_timer.start()
+
+    def _refresh_graph_now(self) -> None:
         for plot_tab in self._tabs:
             plot_tab.plot()
 
@@ -209,5 +217,4 @@ class PlotManager:
         self._tabs.pop(tab_index)
 
     def clear(self) -> None:
-        for plot_tab in self._tabs:
-            plot_tab.plot()
+        self.refresh_graph()
