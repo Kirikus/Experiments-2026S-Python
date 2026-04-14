@@ -33,9 +33,26 @@ class MainController:
         self._setup_tree()
         self._setup_models()
         self._connect_signals()
+        self._ensure_seed_data()
         self._refresh_tree()
 
         self.window.ui.statusbar.showMessage("Готово")
+
+    def _ensure_seed_data(self) -> None:
+        """Создать стартовые данные для пустого эксперимента."""
+        if (
+            self.experiment.get_instruments()
+            or self.experiment.get_variables()
+            or self.experiment.get_constants()
+        ):
+            return
+
+        ruler = InstrumentAbsolute("Линейка", 0.1)
+        self.experiment.add_instrument(ruler)
+
+        variable = VariableMeasured("Длина", ruler)
+        variable.set_values([10.1, 10.3, 10.2, 10.4, 10.25])
+        self.experiment.add_variable(variable)
 
     def _setup_tree(self) -> None:
         # Настройка дерева эксперимента (переменные, константы, приборы)
