@@ -9,6 +9,7 @@ import pyqtgraph as pg
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QComboBox,
+    QInputDialog,
     QLabel,
     QStackedWidget,
     QTabWidget,
@@ -149,6 +150,7 @@ class PlotManager:
         self.ui = ui
         self._source_variable: Any | None = None
         self._tabs: list[PlotTab] = []
+        self._tab_class_by_label = {tab_cls.graph_label: tab_cls for tab_cls in self._TAB_CLASSES}
         self._refresh_timer = QTimer(self.ui.plotGroup)
         self._refresh_timer.setSingleShot(True)
         self._refresh_timer.setInterval(120)
@@ -160,7 +162,7 @@ class PlotManager:
         self._tab_widget: QTabWidget = self.ui.plotTabs
         self._tab_widget.setTabsClosable(True)
         self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
-        self.add_plot_tab()
+        self.add_plot_tab(ScatterPlotTab)
 
     def set_source_variable(self, variable: Any | None) -> None:
         self._source_variable = variable
@@ -174,9 +176,28 @@ class PlotManager:
         for plot_tab in self._tabs:
             plot_tab.plot()
 
-    def add_plot_tab(self) -> None:
+    def _pick_tab_class(self) -> type[PlotTab] | None:
+        labels = [tab_cls.graph_label for tab_cls in self._TAB_CLASSES]
+        selected_label, accepted = QInputDialog.getItem(
+            self.ui.plotGroup,
+            "Добавить вкладку",
+            "Выберите тип графика:",
+            labels,
+            0,
+            False,
+        )
+        if not accepted:
+            return None
+
+        return self._tab_class_by_label.get(selected_label)
+
+    def add_plot_tab(self, tab_cls: type[PlotTab] | None = None) -> None:
+        if tab_cls is None:
+            tab_cls = self._pick_tab_class()
+            if tab_cls is None:
+                return
+
         tab_index = self._tab_widget.count()
-        tab_cls = self._TAB_CLASSES[tab_index % len(self._TAB_CLASSES)]
         plot_tab = tab_cls(f"График {tab_index + 1}")
         plot_tab.set_source_variable(self._source_variable)
         self._tabs.append(plot_tab)
