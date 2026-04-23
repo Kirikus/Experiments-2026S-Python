@@ -39,10 +39,8 @@ class PlotManager:
         self._current_title: str = "График"
         self._tabs: List[_PlotTab] = []
 
-        self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)
-
-        self.ui._tab_widget.setTabsClosable(True)
-        self.ui._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
+        self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)#не знаю к чему подсоединить
+        self.ui._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)#не знаю к чему подсоединить
 
         self.ui._plot_layout.removeWidget(placeholder_widget)
         placeholder_widget.deleteLater()
