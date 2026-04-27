@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CorrelogramPlot</class>
+ <widget class="QWidget" name="CorrelogramPlot">
+  <property name="geometry">
+   <rect>
+    <x>0</x><y>0</y><width>700</width><height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Correlogram Plot</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QWidget" name="parent_ui" native="true">
+     <layout class="QVBoxLayout" name="parentLayout">
+      <property name="margin">
+       <number>0</number>
+      </property>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="settingsLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelYVar">
+       <property name="text"><string>Переменная</string></property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="yVariableCombo"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelMaxLag">
+       <property name="text"><string>Максимальный лаг</string></property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QSpinBox" name="maxLagSpin">
+       <property name="minimum"><number>1</number></property>
+       <property name="maximum"><number>500</number></property>
+       <property name="value"><number>20</number></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
