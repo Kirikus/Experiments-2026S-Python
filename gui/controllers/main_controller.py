@@ -227,3 +227,4 @@ class MainController:
         self._tree.refresh(self.experiment)
         if refresh_instrument_model:
             self.instrument_table_model.refresh()
+        self.window.plot_manager.refresh_variable_lists()

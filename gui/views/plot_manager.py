@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from typing import Any
 
-import pyqtgraph as pg
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QComboBox,
@@ -17,152 +15,94 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from gui.views.plots import ApproximationPlot, CorrelogramPlot, HistogramPlot, LinePlot, ScatterPlot
+from gui.views.plots import Plot, ScatterPlot, LinePlot, HistogramPlot, ApproximationPlot, CorrelogramPlot
 
 
-class PlotTab(ABC):
-    """Абстрактная вкладка с общим UI и методом отрисовки графика."""
+class PlotTab:
+    """Вкладка, которая содержит готовый plot-widget и страницу сообщения."""
 
-    graph_label: str = "График"
-
-    def __init__(self, tab_title: str) -> None:
-        self.tab_title = tab_title
+    def __init__(self, plot_widget: Plot, title: str) -> None:
+        self.plot_impl = plot_widget
+        self.tab_title = title
+        self._source_variable: Any | None = None
 
         self.widget = QWidget()
-        self._layout = QVBoxLayout(self.widget)
-        self._layout.setContentsMargins(0, 0, 0, 0)
+        layout = QVBoxLayout(self.widget)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.combo_type = QComboBox(self.widget)
         self.combo_type.addItems(["График", "Сообщение"])
         self.combo_type.currentIndexChanged.connect(self._sync_stack)
 
         self.stacked_widget = QStackedWidget(self.widget)
+        self.stacked_widget.addWidget(self.plot_impl)
 
-        self._plot_page = QWidget(self.stacked_widget)
-        self._plot_layout = QVBoxLayout(self._plot_page)
-        self._plot_layout.setContentsMargins(0, 0, 0, 0)
-        self.plot_widget = pg.PlotWidget(self._plot_page)
-        self.plot_widget.setBackground("w")
-        self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
-        self._plot_layout.addWidget(self.plot_widget)
-
-        self._message_page = QWidget(self.stacked_widget)
-        self._message_layout = QVBoxLayout(self._message_page)
-        self._message_layout.setContentsMargins(0, 0, 0, 0)
-        self._message_label = QLabel("", self._message_page)
-        self._message_label.setWordWrap(True)
-        self._message_layout.addWidget(self._message_label)
-
-        self.stacked_widget.addWidget(self._plot_page)
+        self._message_page = QLabel("Нет данных", self.stacked_widget)
+        self._message_page.setWordWrap(True)
         self.stacked_widget.addWidget(self._message_page)
 
-        self._layout.addWidget(self.combo_type)
-        self._layout.addWidget(self.stacked_widget)
-
-        self._source_variable: Any | None = None
+        layout.addWidget(self.combo_type)
+        layout.addWidget(self.stacked_widget)
         self._sync_stack()
+
+    def _sync_stack(self, *_args: object) -> None:
+        self.stacked_widget.setCurrentIndex(self.combo_type.currentIndex())
 
     def set_source_variable(self, variable: Any | None) -> None:
         self._source_variable = variable
-
-    def _sync_stack(self, *_args: object) -> None:
-        self.stacked_widget.setCurrentIndex(0 if self.combo_type.currentIndex() == 0 else 1)
-
-    @abstractmethod
-    def plot(self) -> None:
-        """Отрисовать содержимое вкладки для текущего источника данных."""
-
-
-class _SinglePlotTab(PlotTab):
-    """Базовая реализация вкладки для конкретного типа графика."""
-
-    plot_class: Any
-
-    def __init__(self, tab_title: str) -> None:
-        super().__init__(tab_title)
-        self._plot_impl = self.plot_class()
+        self.plot_impl.set_source_variable(variable)
 
     def plot(self) -> None:
         if self._source_variable is None:
-            self._message_label.setText("Выберите переменную и нажмите «Получить график»")
+            self._message_page.setText("Выберите переменную и нажмите «Получить график»")
             self.combo_type.setCurrentIndex(1)
             return
 
-        values = list(self._source_variable.values)
-        if not values:
-            self._message_label.setText(f"{self.tab_title}: нет данных")
+        y_combo = getattr(self.plot_impl.ui, "yVariableCombo", None)
+        if y_combo is None or y_combo.currentText().strip() == "":
+            self._message_page.setText("Выберите переменную для оси Y")
             self.combo_type.setCurrentIndex(1)
             return
 
-        self.plot_widget.clear()
-        self.plot_widget.setTitle("")
-        self.plot_widget.getPlotItem().legend = None
         try:
-            self._plot_impl.plot(self.plot_widget, values)
+            self.plot_impl.plot()
+            self.combo_type.setCurrentIndex(0)
         except ValueError as exc:
-            self._message_label.setText(str(exc))
+            self._message_page.setText(str(exc))
             self.combo_type.setCurrentIndex(1)
-            return
-
-        self.combo_type.setCurrentIndex(0)
-        self.plot_widget.setTitle(f"{self.tab_title} ({self.graph_label})")
-        self.plot_widget.setLabel("bottom", self._plot_impl.x_label)
-        self.plot_widget.setLabel("left", self._plot_impl.y_label)
-
-
-class ScatterPlotTab(_SinglePlotTab):
-    graph_label = "Точки"
-    plot_class = ScatterPlot
-
-
-class LinePlotTab(_SinglePlotTab):
-    graph_label = "Линия"
-    plot_class = LinePlot
-
-
-class HistogramPlotTab(_SinglePlotTab):
-    graph_label = "Гистограмма"
-    plot_class = HistogramPlot
-
-
-class ApproximationPlotTab(_SinglePlotTab):
-    graph_label = "Аппроксимация"
-    plot_class = ApproximationPlot
-
-
-class CorrelogramPlotTab(_SinglePlotTab):
-    graph_label = "Коррелограмма"
-    plot_class = CorrelogramPlot
 
 
 class PlotManager:
     """Менеджер вкладок графиков."""
 
-    _TAB_CLASSES = [
-        ScatterPlotTab,
-        LinePlotTab,
-        HistogramPlotTab,
-        ApproximationPlotTab,
-        CorrelogramPlotTab,
+    _PLOT_CLASSES = [
+        ("Точки", ScatterPlot),
+        ("Линия", LinePlot),
+        ("Гистограмма", HistogramPlot),
+        ("Аппроксимация", ApproximationPlot),
+        ("Коррелограмма", CorrelogramPlot),
     ]
 
     def __init__(self, ui) -> None:
         self.ui = ui
         self._source_variable: Any | None = None
         self._tabs: list[PlotTab] = []
-        self._tab_class_by_label = {tab_cls.graph_label: tab_cls for tab_cls in self._TAB_CLASSES}
+        self._plot_class_by_label = {label: cls for label, cls in self._PLOT_CLASSES}
+        self._plot_label_by_class = {cls: label for label, cls in self._PLOT_CLASSES}
         self._refresh_timer = QTimer(self.ui.plotGroup)
         self._refresh_timer.setSingleShot(True)
         self._refresh_timer.setInterval(120)
         self._refresh_timer.timeout.connect(self._refresh_graph_now)
 
         self.ui.btnGetGraph.clicked.connect(self.refresh_graph)
-        self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)
+        self.ui._btn_add_tab.clicked.connect(lambda *_: self.add_plot_tab())
+        self.ui.btnGetGraph.setToolTip("Перерисовать текущую вкладку графика по выбранным переменным и настройкам")
+        self.ui._btn_add_tab.setToolTip("Добавить новую вкладку и выбрать тип графика")
 
         self._tab_widget: QTabWidget = self.ui.plotTabs
         self._tab_widget.setTabsClosable(True)
         self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
-        self.add_plot_tab(ScatterPlotTab)
+        self.add_plot_tab(ScatterPlot)
 
     def set_source_variable(self, variable: Any | None) -> None:
         self._source_variable = variable
@@ -176,8 +116,8 @@ class PlotManager:
         for plot_tab in self._tabs:
             plot_tab.plot()
 
-    def _pick_tab_class(self) -> type[PlotTab] | None:
-        labels = [tab_cls.graph_label for tab_cls in self._TAB_CLASSES]
+    def _pick_plot_class(self) -> type[Plot] | None:
+        labels = [label for label, _cls in self._PLOT_CLASSES]
         selected_label, accepted = QInputDialog.getItem(
             self.ui.plotGroup,
             "Добавить вкладку",
@@ -189,22 +129,33 @@ class PlotManager:
         if not accepted:
             return None
 
-        return self._tab_class_by_label.get(selected_label)
+        return self._plot_class_by_label.get(selected_label)
 
-    def add_plot_tab(self, tab_cls: type[PlotTab] | None = None) -> None:
+    def add_plot_tab(self, tab_cls: type[Plot] | None = None, *_args: object) -> None:
+        if not isinstance(tab_cls, type):
+            tab_cls = None
+
         if tab_cls is None:
-            tab_cls = self._pick_tab_class()
+            tab_cls = self._pick_plot_class()
             if tab_cls is None:
                 return
 
-        tab_index = self._tab_widget.count()
-        plot_tab = tab_cls(f"График {tab_index + 1}")
-        plot_tab.set_source_variable(self._source_variable)
-        self._tabs.append(plot_tab)
+        plot_widget = tab_cls()
+        plot_widget.set_source_variable(self._source_variable)
 
-        self._tab_widget.addTab(plot_tab.widget, f"{plot_tab.graph_label} {tab_index + 1}")
-        self._tab_widget.setCurrentIndex(tab_index)
-        plot_tab.plot()
+        plot_label = self._plot_label_by_class.get(tab_cls, "График")
+        tab_index = len(self._tabs) + 1
+
+        tab = PlotTab(plot_widget, f"{plot_label} {tab_index}")
+        self._tabs.append(tab)
+
+        self._tab_widget.addTab(tab.widget, tab.tab_title)
+        self._tab_widget.setCurrentWidget(tab.widget)
+        tab.plot()
+
+    def refresh_variable_lists(self) -> None:
+        for tab in self._tabs:
+            tab.plot_impl.set_source_variable(self._source_variable)
 
     def _on_tab_close_requested(self, tab_index: int) -> None:
         if self._tab_widget.count() <= 1:

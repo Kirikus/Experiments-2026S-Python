@@ -1,196 +1,409 @@
-"""Набор классов графиков с единым интерфейсом Plot."""
+"""Widget-классы графиков для UI вкладок."""
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Sequence
+from typing import Any
 
 import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import QRectF
+from PySide6.QtWidgets import QVBoxLayout, QWidget
+
+from gui.views.ui_approximation_plot import Ui_ApproximationPlot
+from gui.views.ui_correlogram_plot import Ui_CorrelogramPlot
+from gui.views.ui_histogram_plot import Ui_HistogramPlot
+from gui.views.ui_line_plot import Ui_LinePlot
+from gui.views.ui_plot_base import Ui_PlotBase
+from gui.views.ui_scatter_plot import Ui_ScatterPlot
+from src import Experiment
 
 
-class Plot(ABC):
-    """Интерфейс для конкретного типа графика."""
+def moveUiContents(source_widget: QWidget, target_widget: QWidget) -> None:
+    """Переносит содержимое layout из source_widget в target_widget."""
+    source_layout = source_widget.layout()
+    if source_layout is None:
+        return
 
-    key: str
-    label: str
-    x_label: str = "Индекс"
-    y_label: str = "Значение"
-    min_points: int = 1
-    min_points_message: str = "Недостаточно данных для построения"
+    target_layout = target_widget.layout()
+    if target_layout is None:
+        target_layout = QVBoxLayout(target_widget)
+        target_layout.setContentsMargins(0, 0, 0, 0)
 
-    def validate(self, values: Sequence[float]) -> None:
-        if len(values) < self.min_points:
-            raise ValueError(self.min_points_message)
+    while source_layout.count():
+        item = source_layout.takeAt(0)
+        child_widget = item.widget()
+        child_layout = item.layout()
+        spacer = item.spacerItem()
 
-    @abstractmethod
-    def plot(self, plot_widget: pg.PlotWidget, values: Sequence[float]) -> None:
-        """Отрисовать график в переданном PlotWidget."""
+        if child_widget is not None:
+            target_layout.addWidget(child_widget)
+        elif child_layout is not None:
+            target_layout.addLayout(child_layout)
+        elif spacer is not None:
+            target_layout.addItem(spacer)
+
+
+class Plot(QWidget):
+    """Базовый класс для графиков, работающих с данными Experiment."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.experiment = Experiment.get_experiment()
+        self._source_data: Any | None = None
+        self._base: Ui_PlotBase | None = None
+
+    @property
+    def plot_widget(self) -> pg.PlotWidget:
+        if self._base is None:
+            raise RuntimeError("Ui_PlotBase не инициализирован")
+        return self._base.plotWidget
+
+    def setup_base_ui(self, parent_ui: QWidget) -> None:
+        """Создает Ui_PlotBase и переносит его содержимое в parent_ui."""
+        temp_container = QWidget()
+        self._base = Ui_PlotBase()
+        self._base.setupUi(temp_container)
+        moveUiContents(temp_container, parent_ui)
+        self.plot_widget.setBackground("w")
+        self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
+
+    def set_source_data(self, data: Any | None) -> None:
+        self._source_data = data
+
+    def set_source_variable(self, variable: Any | None) -> None:
+        """Совместимость с PlotManager: источник данных = выбранная переменная."""
+        self.set_source_data(variable)
+
+    def get_variable_by_name(self, name: str):
+        for variable in self.experiment.get_variables():
+            if variable.name == name:
+                return variable
+        return None
+
+    def _fill_xy_combos(self, x_combo, y_combo, include_index: bool = True) -> None:
+        variable_names = [v.name for v in self.experiment.get_variables()]
+
+        x_combo.blockSignals(True)
+        x_combo.clear()
+        if include_index:
+            x_combo.addItem("Индекс")
+        x_combo.addItems(variable_names)
+        x_combo.blockSignals(False)
+
+        y_combo.blockSignals(True)
+        y_combo.clear()
+        y_combo.addItems(variable_names)
+        y_combo.blockSignals(False)
+
+    def _fill_y_combo(self, y_combo) -> None:
+        variable_names = [v.name for v in self.experiment.get_variables()]
+        y_combo.blockSignals(True)
+        y_combo.clear()
+        y_combo.addItems(variable_names)
+        y_combo.blockSignals(False)
+
+    def _apply_base_labels(self) -> None:
+        if self._base is None:
+            return
+        self.plot_widget.setTitle(self._base.titleEdit.text())
+        self.plot_widget.setLabel("bottom", self._base.xLabelEdit.text())
+        self.plot_widget.setLabel("left", self._base.yLabelEdit.text())
 
 
 class ScatterPlot(Plot):
-    key = "scatter"
-    label = "Точки"
+    _SYMBOLS = {
+        "Круг": "o",
+        "Квадрат": "s",
+        "Треугольник": "t",
+        "Ромб": "d",
+        "Плюс": "+",
+        "Крест": "x",
+    }
 
-    def plot(self, plot_widget: pg.PlotWidget, values: Sequence[float]) -> None:
-        self.validate(values)
-        x_values = list(range(len(values)))
-        plot_widget.plot(
-            x_values,
-            values,
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+
+        self.ui = Ui_ScatterPlot()
+        self.ui.setupUi(self)
+        self.setup_base_ui(self.ui.parent_ui)
+
+        if self.ui.symbolCombo.count() == 0:
+            for label, symbol in self._SYMBOLS.items():
+                self.ui.symbolCombo.addItem(f"{label} ({symbol})", symbol)
+        self.ui.symbolCombo.setCurrentIndex(0)
+
+        self._fill_variable_combos()
+
+        self.ui.yVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.xVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.symbolCombo.currentIndexChanged.connect(self.plot)
+        self.ui.sizeSpin.valueChanged.connect(self.plot)
+
+    def set_source_data(self, data: Any | None) -> None:
+        super().set_source_data(data)
+        self._fill_variable_combos()
+        if data is not None and hasattr(data, "name"):
+            idx = self.ui.yVariableCombo.findText(data.name)
+            if idx >= 0:
+                self.ui.yVariableCombo.setCurrentIndex(idx)
+
+    def _fill_variable_combos(self) -> None:
+        self._fill_xy_combos(self.ui.xVariableCombo, self.ui.yVariableCombo, include_index=True)
+
+    def plot(self) -> None:
+        self.plot_widget.clear()
+        self._apply_base_labels()
+
+        y_var = self.get_variable_by_name(self.ui.yVariableCombo.currentText())
+        if y_var is None or y_var.count() == 0:
+            return
+        y_vals = list(y_var.values)
+
+        x_name = self.ui.xVariableCombo.currentText()
+        if x_name == "Индекс":
+            x_vals = list(range(len(y_vals)))
+        else:
+            x_var = self.get_variable_by_name(x_name)
+            if x_var is None or x_var.count() != len(y_vals):
+                return
+            x_vals = list(x_var.values)
+
+        symbol = self.ui.symbolCombo.currentData() or "o"
+        self.plot_widget.plot(
+            x_vals,
+            y_vals,
             pen=None,
-            symbol="o",
-            symbolSize=8,
+            symbol=symbol,
+            symbolSize=self.ui.sizeSpin.value(),
             symbolBrush=(0, 122, 204),
             symbolPen=(0, 122, 204),
-            name="Значения",
+            name=y_var.name,
         )
 
 
 class LinePlot(Plot):
-    key = "line"
-    label = "Линия"
+    _COLOR_MAP = {
+        "Синий": (0, 122, 204),
+        "Красный": (204, 0, 0),
+        "Зеленый": (0, 153, 76),
+        "Черный": (0, 0, 0),
+    }
 
-    def plot(self, plot_widget: pg.PlotWidget, values: Sequence[float]) -> None:
-        self.validate(values)
-        x_values = list(range(len(values)))
-        plot_widget.plot(
-            x_values,
-            values,
-            pen=pg.mkPen(color=(0, 122, 204), width=2),
-            name="Значения",
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+
+        self.ui = Ui_LinePlot()
+        self.ui.setupUi(self)
+        self.setup_base_ui(self.ui.parent_ui)
+
+        if self.ui.colorCombo.count() == 0:
+            self.ui.colorCombo.addItems(list(self._COLOR_MAP.keys()))
+
+        self._fill_variable_combos()
+
+        self.ui.yVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.xVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.colorCombo.currentIndexChanged.connect(self.plot)
+        self.ui.widthSpin.valueChanged.connect(self.plot)
+
+    def set_source_data(self, data: Any | None) -> None:
+        super().set_source_data(data)
+        self._fill_variable_combos()
+        if data is not None and hasattr(data, "name"):
+            idx = self.ui.yVariableCombo.findText(data.name)
+            if idx >= 0:
+                self.ui.yVariableCombo.setCurrentIndex(idx)
+
+    def _fill_variable_combos(self) -> None:
+        self._fill_xy_combos(self.ui.xVariableCombo, self.ui.yVariableCombo, include_index=True)
+
+    def plot(self) -> None:
+        self.plot_widget.clear()
+        self._apply_base_labels()
+
+        y_var = self.get_variable_by_name(self.ui.yVariableCombo.currentText())
+        if y_var is None or y_var.count() == 0:
+            return
+        y_vals = list(y_var.values)
+
+        x_name = self.ui.xVariableCombo.currentText()
+        if x_name == "Индекс":
+            x_vals = list(range(len(y_vals)))
+        else:
+            x_var = self.get_variable_by_name(x_name)
+            if x_var is None or x_var.count() != len(y_vals):
+                return
+            x_vals = list(x_var.values)
+
+        color = self._COLOR_MAP.get(self.ui.colorCombo.currentText(), (0, 122, 204))
+        self.plot_widget.plot(
+            x_vals,
+            y_vals,
+            pen=pg.mkPen(color=color, width=self.ui.widthSpin.value()),
+            name=y_var.name,
         )
 
 
 class HistogramPlot(Plot):
-    key = "histogram"
-    label = "Гистограмма"
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
 
-    def __init__(self, bins: int = 10) -> None:
-        self._bins = max(1, bins)
+        self.ui = Ui_HistogramPlot()
+        self.ui.setupUi(self)
+        self.setup_base_ui(self.ui.parent_ui)
 
-    def plot(self, plot_widget: pg.PlotWidget, values: Sequence[float]) -> None:
-        self.validate(values)
-        bins = self._bins
-        min_val = min(values)
-        max_val = max(values)
-        bin_width = (max_val - min_val) / bins if max_val > min_val else 1.0
+        self.ui.yVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.binsSpin.valueChanged.connect(self.plot)
+        self._fill_variable_combos()
 
-        hist = [0] * bins
-        for value in values:
-            bin_index = int((value - min_val) / bin_width)
-            bin_index = min(bin_index, bins - 1)
-            hist[bin_index] += 1
+    def set_source_data(self, data: Any | None) -> None:
+        super().set_source_data(data)
+        self._fill_variable_combos()
+        if data is not None and hasattr(data, "name"):
+            idx = self.ui.yVariableCombo.findText(data.name)
+            if idx >= 0:
+                self.ui.yVariableCombo.setCurrentIndex(idx)
 
-        x_points = []
-        y_points = []
-        for i, count in enumerate(hist):
-            x = min_val + (i + 0.5) * bin_width
-            x_points.append(x)
-            y_points.append(count)
+    def _fill_variable_combos(self) -> None:
+        self._fill_y_combo(self.ui.yVariableCombo)
 
-        bars = pg.BarGraphItem(x=x_points, height=y_points, width=bin_width * 0.9, brush=(204, 122, 0))
-        plot_widget.addItem(bars)
+    def plot(self) -> None:
+        self.plot_widget.clear()
+        self._apply_base_labels()
+
+        y_var = self.get_variable_by_name(self.ui.yVariableCombo.currentText())
+        if y_var is None or y_var.count() == 0:
+            return
+        values = np.asarray(list(y_var.values), dtype=float)
+
+        bins = max(1, self.ui.binsSpin.value())
+        hist, edges = np.histogram(values, bins=bins)
+        centers = (edges[:-1] + edges[1:]) / 2.0
+        widths = np.diff(edges)
+
+        bars = pg.BarGraphItem(x=centers, height=hist, width=widths * 0.9, brush=(204, 122, 0))
+        self.plot_widget.addItem(bars)
 
 
 class ApproximationPlot(Plot):
-    key = "approximation"
-    label = "Аппроксимация"
-    min_points = 2
-    min_points_message = "Для аппроксимации нужно минимум 2 точки"
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
 
-    def plot(self, plot_widget: pg.PlotWidget, values: Sequence[float]) -> None:
-        self.validate(values)
-        n = len(values)
-        if n == 0:
-            raise ValueError(self.min_points_message)
-        x_values = list(range(n))
+        self.ui = Ui_ApproximationPlot()
+        self.ui.setupUi(self)
+        self.setup_base_ui(self.ui.parent_ui)
 
-        sum_x = sum(x_values)
-        sum_y = sum(values)
-        sum_xy = sum(x * y for x, y in zip(x_values, values))
-        sum_x2 = sum(x * x for x in x_values)
+        self.ui.yVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.xVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.showPointsCheckBox.toggled.connect(self.plot)
+        self._fill_variable_combos()
 
-        denominator = n * sum_x2 - sum_x * sum_x
-        if denominator == 0:
-            a, b = 0.0, sum_y / n
+    def set_source_data(self, data: Any | None) -> None:
+        super().set_source_data(data)
+        self._fill_variable_combos()
+        if data is not None and hasattr(data, "name"):
+            idx = self.ui.yVariableCombo.findText(data.name)
+            if idx >= 0:
+                self.ui.yVariableCombo.setCurrentIndex(idx)
+
+    def _fill_variable_combos(self) -> None:
+        self._fill_xy_combos(self.ui.xVariableCombo, self.ui.yVariableCombo, include_index=True)
+
+    def plot(self) -> None:
+        self.plot_widget.clear()
+        self._apply_base_labels()
+
+        y_var = self.get_variable_by_name(self.ui.yVariableCombo.currentText())
+        if y_var is None or y_var.count() < 2:
+            return
+        y_vals = np.asarray(list(y_var.values), dtype=float)
+
+        x_name = self.ui.xVariableCombo.currentText()
+        if x_name == "Индекс":
+            x_vals = np.arange(len(y_vals), dtype=float)
         else:
-            a = (n * sum_xy - sum_x * sum_y) / denominator
-            b = (sum_y - a * sum_x) / n
+            x_var = self.get_variable_by_name(x_name)
+            if x_var is None or x_var.count() != len(y_vals):
+                return
+            x_vals = np.asarray(list(x_var.values), dtype=float)
 
-        y_approx = [a * i + b for i in x_values]
+        a, b = np.polyfit(x_vals, y_vals, 1)
+        y_fit = a * x_vals + b
 
-        plot_widget.plot(
-            x_values,
-            values,
-            pen=None,
-            symbol="o",
-            symbolSize=6,
-            symbolBrush=(0, 122, 204),
-            symbolPen=(0, 122, 204),
-            name="Исходные данные",
-        )
-        plot_widget.plot(
-            x_values,
-            y_approx,
+        if self.ui.showPointsCheckBox.isChecked():
+            self.plot_widget.plot(
+                x_vals,
+                y_vals,
+                pen=None,
+                symbol="o",
+                symbolSize=6,
+                symbolBrush=(0, 122, 204),
+                symbolPen=(0, 122, 204),
+                name="Исходные данные",
+            )
+
+        self.plot_widget.plot(
+            x_vals,
+            y_fit,
             pen=pg.mkPen(color=(204, 0, 0), width=2),
             name=f"Линия тренда (y = {a:.3f}*x + {b:.3f})",
         )
 
 
 class CorrelogramPlot(Plot):
-    key = "correlogram"
-    label = "Коррелограмма"
-    x_label = "Лаг j"
-    y_label = "Лаг i"
-    min_points = 2
-    min_points_message = "Для коррелограммы нужно минимум 2 точки"
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
 
-    def __init__(self, max_lag: int = 20) -> None:
-        self._max_lag = max_lag
+        self.ui = Ui_CorrelogramPlot()
+        self.ui.setupUi(self)
+        self.setup_base_ui(self.ui.parent_ui)
 
-    def plot(self, plot_widget: pg.PlotWidget, values: Sequence[float]) -> None:
-        """Рисует тепловую карту автокорреляции по лагам."""
-        self.validate(values)
-        series = np.asarray(values, dtype=float)
-        n = int(series.size)
-        lag_limit = min(self._max_lag, n - 1)
-        if lag_limit < 1:
-            raise ValueError("Для коррелограммы нужно минимум 2 точки")
+        self.ui.yVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.maxLagSpin.valueChanged.connect(self.plot)
+        self._fill_variable_combos()
+
+    def set_source_data(self, data: Any | None) -> None:
+        super().set_source_data(data)
+        self._fill_variable_combos()
+        if data is not None and hasattr(data, "name"):
+            idx = self.ui.yVariableCombo.findText(data.name)
+            if idx >= 0:
+                self.ui.yVariableCombo.setCurrentIndex(idx)
+
+    def _fill_variable_combos(self) -> None:
+        self._fill_y_combo(self.ui.yVariableCombo)
+
+    def plot(self) -> None:
+        self.plot_widget.clear()
+        self._apply_base_labels()
+
+        y_var = self.get_variable_by_name(self.ui.yVariableCombo.currentText())
+        if y_var is None or y_var.count() < 2:
+            return
+        series = np.asarray(list(y_var.values), dtype=float)
+
+        max_lag = min(max(1, int(self.ui.maxLagSpin.value())), series.size - 1)
 
         centered = series - float(np.mean(series))
         variance = float(np.dot(centered, centered))
         if variance == 0.0:
-            autocorr = np.ones(lag_limit + 1, dtype=float)
+            autocorr = np.ones(max_lag + 1, dtype=float)
         else:
-            autocorr = np.empty(lag_limit + 1, dtype=float)
+            autocorr = np.empty(max_lag + 1, dtype=float)
             autocorr[0] = 1.0
-            for lag in range(1, lag_limit + 1):
+            for lag in range(1, max_lag + 1):
                 numerator = float(np.dot(centered[:-lag], centered[lag:]))
                 autocorr[lag] = numerator / variance
 
-        corr_matrix = np.empty((lag_limit + 1, lag_limit + 1), dtype=float)
-        for i in range(lag_limit + 1):
-            for j in range(lag_limit + 1):
+        corr_matrix = np.empty((max_lag + 1, max_lag + 1), dtype=float)
+        for i in range(max_lag + 1):
+            for j in range(max_lag + 1):
                 corr_matrix[i, j] = autocorr[abs(i - j)]
 
         image = pg.ImageItem(corr_matrix)
-        image.setRect(QRectF(0, 0, lag_limit + 1, lag_limit + 1))
+        image.setRect(QRectF(0, 0, max_lag + 1, max_lag + 1))
         image.setColorMap(pg.colormap.get("CET-D1"))
 
-        plot_item = plot_widget.getPlotItem()
+        plot_item = self.plot_widget.getPlotItem()
         plot_item.addItem(image)
-        plot_item.getViewBox().setLimits(xMin=0, xMax=lag_limit + 1, yMin=0, yMax=lag_limit + 1)
-
-
-def get_default_plots() -> dict[str, Plot]:
-    """Возвращает реестр доступных графиков по ключу."""
-    plot_objects: list[Plot] = [
-        ScatterPlot(),
-        LinePlot(),
-        HistogramPlot(),
-        ApproximationPlot(),
-        CorrelogramPlot(),
-    ]
-    return {plot.key: plot for plot in plot_objects}
+        plot_item.getViewBox().setLimits(xMin=0, xMax=max_lag + 1, yMin=0, yMax=max_lag + 1)
