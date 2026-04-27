@@ -36,8 +36,7 @@ class MainWindow(QMainWindow):
         self.ui.tableInstruments.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # Скрываем боковую нумерацию строк, чтобы не дублировать столбец N
-        self.ui.tableValues.verticalHeader().setVisible(False)
-        self.ui.tableInstruments.verticalHeader().setVisible(False)
+
 
         # Инициализируем менеджер графиков
         self.plot_manager = PlotManager(self.ui.plotChartView, self.ui)
@@ -90,15 +89,7 @@ class MainWindow(QMainWindow):
         right_layout.removeWidget(self.ui.instrumentsGroup)
 
         nav_widget = QWidget(self.ui.rightPanel)
-        nav_layout = QHBoxLayout(nav_widget)
-        nav_layout.setContentsMargins(0, 0, 0, 0)
 
-
-        nav_layout.addWidget(self.ui.btnPageValues)
-        nav_layout.addWidget(self.ui.btnPageConstants)
-        nav_layout.addWidget(self.ui.btnPageInstruments)
-        nav_layout.addWidget(self.ui.btnPageGraph)
-        nav_layout.addWidget(self.ui.btnPageFormulas)
 
         self.workspacePages = QStackedWidget(self.ui.rightPanel)
 
@@ -110,14 +101,14 @@ class MainWindow(QMainWindow):
         self.workspacePages.addWidget(variables_page)
 
         # Страница констант.
-        self.constantsTable = QTableView(self.ui.rightPanel)
-        self.constantsTable.setObjectName("constantsTable")
-        self.constantsTable.setAlternatingRowColors(True)
+        self.ui.constantsTable = QTableView(self.ui.rightPanel)
+        self.ui.constantsTable.setObjectName("constantsTable")
+        self.ui.constantsTable.setAlternatingRowColors(True)
 
         constants_page = QWidget(self.workspacePages)
         constants_layout = QVBoxLayout(constants_page)
         constants_layout.setContentsMargins(8, 8, 8, 8)
-        constants_layout.addWidget(self.constantsTable)
+        constants_layout.addWidget(self.ui.constantsTable)
         self.workspacePages.addWidget(constants_page)
 
         # Страница приборов.
@@ -152,11 +143,10 @@ class MainWindow(QMainWindow):
             "formulas": 4,
         }
 
-        self.ui.btnPageValues.clicked.connect(self.show_variables_page)
-        self.ui.btnPageConstants.clicked.connect(self.show_constants_page)
-        self.ui.btnPageInstruments.clicked.connect(self.show_instruments_page)
-        self.ui.btnPageGraph.clicked.connect(self.show_graph_page)
-        self.ui.btnPageFormulas.clicked.connect(self.show_formulas_page)
+        
+       
+        
+        
         self._setup_page_nav_styles()
 
         info_index = right_layout.indexOf(self.ui.infoGroup)

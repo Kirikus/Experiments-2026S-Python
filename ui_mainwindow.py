@@ -19,9 +19,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout,
     QHeaderView, QLabel, QMainWindow, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QStatusBar,
-    QTableView, QTableWidget, QTableWidgetItem, QTreeWidget,
-    QTreeWidgetItem, QVBoxLayout, QWidget)
+    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
+    QStatusBar, QTabWidget, QTableView, QTableWidget,
+    QTableWidgetItem, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -116,7 +117,10 @@ class Ui_MainWindow(object):
         self.plotChartView.setObjectName(u"plotChartView")
         self.plotChartView.setMinimumSize(QSize(200, 150))
 
-        self.verticalLayoutPlot.addWidget(self.plotChartView)
+        self._plot_layout.addWidget(self.plotChartView)
+
+
+        self.verticalLayoutPlot.addLayout(self._plot_layout)
 
 
         self.verticalLayoutRight.addWidget(self.plotGroup)
@@ -204,6 +208,9 @@ class Ui_MainWindow(object):
         self.menuExperiment.addAction(self.actionAddInstrument)
 
         self.retranslateUi(MainWindow)
+
+        self._tab_widget.setCurrentIndex(-1)
+
 
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi

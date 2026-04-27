@@ -34,35 +34,22 @@ class PlotManager:
     ]
 
     def __init__(self, placeholder_widget: QWidget, ui) -> None:
-        self._plot_group = placeholder_widget.parentWidget()
         self.ui = ui
-        self._plot_layout = self._plot_group.layout()
         self._current_values: List[float] = []
         self._current_title: str = "График"
         self._tabs: List[_PlotTab] = []
 
-        self._toolbar_widget = QWidget(self._plot_group)
-        self._toolbar_layout = QHBoxLayout(self._toolbar_widget)
-        self._toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)#не знаю к чему подсоединить
+        self.ui._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)#не знаю к чему подсоединить
 
-        
-        self.ui._btn_add_tab.clicked.connect(self.add_plot_tab)
-        self._toolbar_layout.addWidget(self.ui._btn_add_tab)
-        self._toolbar_layout.addStretch()
-
-        self._tab_widget = QTabWidget(self._plot_group)
-        self._tab_widget.setTabsClosable(True)
-        self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
-
-        self._plot_layout.removeWidget(placeholder_widget)
+        self.ui._plot_layout.removeWidget(placeholder_widget)
         placeholder_widget.deleteLater()
-        self._plot_layout.addWidget(self._toolbar_widget)
-        self._plot_layout.addWidget(self._tab_widget)
+        
 
         self.add_plot_tab()
 
     def add_plot_tab(self) -> None:
-        tab_content = QWidget(self._tab_widget)
+        tab_content = QWidget(self.ui._tab_widget)
         tab_layout = QVBoxLayout(tab_content)
         tab_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -76,8 +63,8 @@ class PlotManager:
         plot_widget.showGrid(x=True, y=True, alpha=0.2)
         tab_layout.addWidget(plot_widget)
 
-        tab_index = self._tab_widget.addTab(tab_content, f"График {self._tab_widget.count() + 1}")
-        self._tab_widget.setCurrentIndex(tab_index)
+        tab_index = self.ui._tab_widget.addTab(tab_content, f"График {self.ui._tab_widget.count() + 1}")
+        self.ui._tab_widget.setCurrentIndex(tab_index)
 
         plot_tab = _PlotTab(
             plot_widget=plot_widget,
@@ -90,11 +77,11 @@ class PlotManager:
         self._render_tab(plot_tab)
 
     def _on_tab_close_requested(self, tab_index: int) -> None:
-        if self._tab_widget.count() <= 1:
+        if self.ui._tab_widget.count() <= 1:
             return
 
-        widget = self._tab_widget.widget(tab_index)
-        self._tab_widget.removeTab(tab_index)
+        widget = self.ui._tab_widget.widget(tab_index)
+        self.ui._tab_widget.removeTab(tab_index)
         if widget is not None:
             widget.deleteLater()
 
