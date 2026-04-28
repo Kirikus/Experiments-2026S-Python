@@ -49,8 +49,6 @@ class Plot(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.experiment = Experiment.get_experiment()
-        self._source_data: Any | None = None
-        self._base: Ui_PlotBase | None = None
 
     @property
     def plot_widget(self) -> pg.PlotWidget:
@@ -194,7 +192,8 @@ class LinePlot(Plot):
 
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
-        self.setup_base_ui(self.ui.parent_ui)
+
+        return
 
         if self.ui.colorCombo.count() == 0:
             self.ui.colorCombo.addItems(list(self._COLOR_MAP.keys()))
