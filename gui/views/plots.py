@@ -184,11 +184,25 @@ class LinePlot(Plot):
         "Черный": (0, 0, 0),
     }
 
+    def variable_added(self):
+        #TODO: use this slot to update settings table then Variable is added.
+        ...
+
+    def variable_removed(self, index: int) -> None:
+        #TODO: use this slot to update settings table then Variable is removed.
+        ...
+
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
+
+        #TODO: populate ui.settingsTable and connect it to MainWindow signals
+        #FIXME: remove all references to self.ui.yVariableCombo and similar fields
+        #FIXME: remove all references to self.set_source_data and similar methods
+        #TODO: add combobox "X Variable" to lineplot.ui, which chooses which variable is used for X axis (None for simple range)
+        #TODO: connect variable_added and variable_removed to signals from MainWindow
 
         return
 
