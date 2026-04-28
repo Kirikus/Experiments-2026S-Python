@@ -7,3 +7,4 @@ __pycache__/
 build/
 __pycache__/
 *.pyc
+ui*.py
