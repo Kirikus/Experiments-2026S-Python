@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="Plot" name="_base" native="true">
+    <widget class="PlotBase" name="_base" native="true">
      <layout class="QVBoxLayout" name="parentLayout">
       <property name="margin" stdset="0">
        <number>0</number>
@@ -220,7 +220,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Plot</class>
+   <class>PlotBase</class>
    <extends>QWidget</extends>
    <header>gui.views.plot_base</header>
    <container>1</container>
