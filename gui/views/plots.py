@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import QRectF
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from gui.views.ui_approximation_plot import Ui_ApproximationPlot
@@ -98,13 +99,11 @@ class Plot(QWidget):
         y_combo.addItems(variable_names)
         y_combo.blockSignals(False)
 
-    def _apply_base_labels(self) -> None:
-        if self._base is None:
-            return
-        self.plot_widget.setTitle(self._base.titleEdit.text())
-        self.plot_widget.setLabel("bottom", self._base.xLabelEdit.text())
-        self.plot_widget.setLabel("left", self._base.yLabelEdit.text())
-
+    def plot(self) -> None:
+        self.plot_widget.clear()
+        self.plot_widget.setTitle(self.ui._base.ui.titleEdit.text())
+        self.plot_widget.setLabel("bottom", self.ui._base.ui.xLabelEdit.text())
+        self.plot_widget.setLabel("left", self.ui._base.ui.yLabelEdit.text())
 
 class ScatterPlot(Plot):
     _SYMBOLS = {
@@ -215,30 +214,35 @@ class LinePlot(Plot):
         self._fill_xy_combos(self.ui.xVariableCombo, self.ui.yVariableCombo, include_index=True)
 
     def plot(self) -> None:
-        self.plot_widget.clear()
-        self._apply_base_labels()
+        super().plot()
 
-        y_var = self.get_variable_by_name(self.ui.yVariableCombo.currentText())
-        if y_var is None or y_var.count() == 0:
-            return
-        y_vals = list(y_var.values)
+        for i, variable in enumerate(Experiment.get_experiment().get_variables()):
+            # Skip invisible lines
+            if self.ui.settingsTable.item(5, i).text() == "False":
+                continue
 
-        x_name = self.ui.xVariableCombo.currentText()
-        if x_name == "Индекс":
+            # TODO: allow choice of X variable via QComboBox
+            y_vals = variable.values
             x_vals = list(range(len(y_vals)))
-        else:
-            x_var = self.get_variable_by_name(x_name)
-            if x_var is None or x_var.count() != len(y_vals):
-                return
-            x_vals = list(x_var.values)
 
-        color = self._COLOR_MAP.get(self.ui.colorCombo.currentText(), (0, 122, 204))
-        self.plot_widget.plot(
-            x_vals,
-            y_vals,
-            pen=pg.mkPen(color=color, width=self.ui.widthSpin.value()),
-            name=y_var.name,
-        )
+            name = self.ui.settingsTable.horizontalHeaderItem(0)
+            linetype = {
+                "Solid": Qt.PenStyle.SolidLine,
+                "Dashed": Qt.PenStyle.DashLine,
+            }[self.ui.settingsTable.item(0, i).text()]
+            width = int(self.ui.settingsTable.item(1, i).text())
+            symbol = self.ui.settingsTable.item(2, i).text()
+            size = int(self.ui.settingsTable.item(3, i).text())
+            color = self.ui.settingsTable.item(4, i).text()
+            self.plot_widget.plot(
+                x_vals,
+                y_vals,
+                pen=pg.mkPen(color=color, width=width, style=linetype),
+                name=name,
+                symbol=symbol,
+                symbolSize=size,
+                symbolBrush=color,
+            )
 
 
 class HistogramPlot(Plot):
