@@ -52,9 +52,7 @@ class Plot(QWidget):
 
     @property
     def plot_widget(self) -> pg.PlotWidget:
-        if self._base is None:
-            raise RuntimeError("Ui_PlotBase не инициализирован")
-        return self._base.plotWidget
+        return self.ui._base.ui.plotWidget
 
     def setup_base_ui(self, parent_ui: QWidget) -> None:
         """Создает Ui_PlotBase и переносит его содержимое в parent_ui."""
