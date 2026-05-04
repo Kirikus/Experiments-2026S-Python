@@ -5,19 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import (
-<<<<<<< HEAD
-    QComboBox,
-    QInputDialog,
-    QLabel,
-    QStackedWidget,
-=======
-    QInputDialog,
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QInputDialog, QTabWidget, QVBoxLayout, QWidget
 
 from gui.views.plots import Plot, ScatterPlot, LinePlot, HistogramPlot, ApproximationPlot, CorrelogramPlot
 
@@ -34,27 +22,7 @@ class PlotTab:
         layout = QVBoxLayout(self.widget)
         layout.setContentsMargins(0, 0, 0, 0)
 
-<<<<<<< HEAD
-        self.combo_type = QComboBox(self.widget)
-        self.combo_type.addItems(["График", "Сообщение"])
-        self.combo_type.currentIndexChanged.connect(self._sync_stack)
-
-        self.stacked_widget = QStackedWidget(self.widget)
-        self.stacked_widget.addWidget(self.plot_impl)
-
-        self._message_page = QLabel("Нет данных", self.stacked_widget)
-        self._message_page.setWordWrap(True)
-        self.stacked_widget.addWidget(self._message_page)
-
-        layout.addWidget(self.combo_type)
-        layout.addWidget(self.stacked_widget)
-        self._sync_stack()
-
-    def _sync_stack(self, *_args: object) -> None:
-        self.stacked_widget.setCurrentIndex(self.combo_type.currentIndex())
-=======
         layout.addWidget(self.plot_impl)
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
     def set_source_variable(self, variable: Any | None) -> None:
         self._source_variable = variable
@@ -62,16 +30,6 @@ class PlotTab:
 
     def plot(self) -> None:
         if self._source_variable is None:
-<<<<<<< HEAD
-            self._message_page.setText("Выберите переменную и нажмите «Получить график»")
-            self.combo_type.setCurrentIndex(1)
-            return
-
-        y_combo = getattr(self.plot_impl.ui, "yVariableCombo", None)
-        if y_combo is None or y_combo.currentText().strip() == "":
-            self._message_page.setText("Выберите переменную для оси Y")
-            self.combo_type.setCurrentIndex(1)
-=======
             return
 
         y_combo = getattr(self.plot_impl.ui, "yVariableCombo", None)
@@ -81,20 +39,12 @@ class PlotTab:
             return
 
         if settings_table is not None and settings_table.columnCount() == 0:
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
             return
 
         try:
             self.plot_impl.plot()
-<<<<<<< HEAD
-            self.combo_type.setCurrentIndex(0)
-        except ValueError as exc:
-            self._message_page.setText(str(exc))
-            self.combo_type.setCurrentIndex(1)
-=======
         except ValueError as exc:
             print(f"Plot error: {exc}")
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
 
 class PlotManager:
@@ -127,11 +77,7 @@ class PlotManager:
         self._tab_widget: QTabWidget = self.ui.plotTabs
         self._tab_widget.setTabsClosable(True)
         self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
-<<<<<<< HEAD
-        self.add_plot_tab(LinePlot)
-=======
         self.add_plot_tab(ScatterPlot)
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
     def set_source_variable(self, variable: Any | None) -> None:
         self._source_variable = variable

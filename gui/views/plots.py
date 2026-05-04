@@ -6,14 +6,8 @@ from typing import Any
 
 import numpy as np
 import pyqtgraph as pg
-<<<<<<< HEAD
-from PySide6.QtCore import QRectF
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QWidget
-=======
 from PySide6.QtCore import QRectF, Qt
 from PySide6.QtWidgets import QTableWidgetItem, QVBoxLayout, QWidget
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
 from gui.views.ui_approximation_plot import Ui_ApproximationPlot
 from gui.views.ui_correlogram_plot import Ui_CorrelogramPlot
@@ -55,12 +49,6 @@ class Plot(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.experiment = Experiment.get_experiment()
-<<<<<<< HEAD
-
-    @property
-    def plot_widget(self) -> pg.PlotWidget:
-        return self.ui._base.ui.plotWidget
-=======
         self._source_data: Any | None = None
         self._base: Ui_PlotBase | None = None
 
@@ -69,7 +57,6 @@ class Plot(QWidget):
         if self._base is None:
             raise RuntimeError("Ui_PlotBase не инициализирован")
         return self._base.plotWidget
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
     def setup_base_ui(self, parent_ui: QWidget) -> None:
         """Создает Ui_PlotBase и переносит его содержимое в parent_ui."""
@@ -115,21 +102,12 @@ class Plot(QWidget):
         y_combo.addItems(variable_names)
         y_combo.blockSignals(False)
 
-<<<<<<< HEAD
-    def plot(self) -> None:
-        self.plot_widget.clear()
-        self.plot_widget.setTitle(self.ui._base.ui.titleEdit.text())
-        self.plot_widget.setLabel("bottom", self.ui._base.ui.xLabelEdit.text())
-        self.plot_widget.setLabel("left", self.ui._base.ui.yLabelEdit.text())
-=======
     def _apply_base_labels(self) -> None:
         if self._base is None:
             return
         self.plot_widget.setTitle(self._base.titleEdit.text())
         self.plot_widget.setLabel("bottom", self._base.xLabelEdit.text())
         self.plot_widget.setLabel("left", self._base.yLabelEdit.text())
-
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
 class ScatterPlot(Plot):
     _SYMBOLS = {
@@ -203,7 +181,6 @@ class ScatterPlot(Plot):
 
 
 class LinePlot(Plot):
-<<<<<<< HEAD
     _COLOR_MAP = {
         "Синий": (0, 122, 204),
         "Красный": (204, 0, 0),
@@ -219,75 +196,11 @@ class LinePlot(Plot):
         #TODO: use this slot to update settings table then Variable is removed.
         ...
 
-=======
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
-<<<<<<< HEAD
-
-        #TODO: populate ui.settingsTable and connect it to MainWindow signals
-        #FIXME: remove all references to self.ui.yVariableCombo and similar fields
-        #FIXME: remove all references to self.set_source_data and similar methods
-        #TODO: add combobox "X Variable" to lineplot.ui, which chooses which variable is used for X axis (None for simple range)
-        #TODO: connect variable_added and variable_removed to signals from MainWindow
-
-        return
-
-        if self.ui.colorCombo.count() == 0:
-            self.ui.colorCombo.addItems(list(self._COLOR_MAP.keys()))
-
-        self._fill_variable_combos()
-
-        self.ui.yVariableCombo.currentIndexChanged.connect(self.plot)
-        self.ui.xVariableCombo.currentIndexChanged.connect(self.plot)
-        self.ui.colorCombo.currentIndexChanged.connect(self.plot)
-        self.ui.widthSpin.valueChanged.connect(self.plot)
-
-    def set_source_data(self, data: Any | None) -> None:
-        super().set_source_data(data)
-        self._fill_variable_combos()
-        if data is not None and hasattr(data, "name"):
-            idx = self.ui.yVariableCombo.findText(data.name)
-            if idx >= 0:
-                self.ui.yVariableCombo.setCurrentIndex(idx)
-
-    def _fill_variable_combos(self) -> None:
-        self._fill_xy_combos(self.ui.xVariableCombo, self.ui.yVariableCombo, include_index=True)
-
-    def plot(self) -> None:
-        super().plot()
-
-        for i, variable in enumerate(Experiment.get_experiment().get_variables()):
-            # Skip invisible lines
-            if self.ui.settingsTable.item(5, i).text() == "False":
-                continue
-
-            # TODO: allow choice of X variable via QComboBox
-            y_vals = variable.values
-            x_vals = list(range(len(y_vals)))
-
-            name = self.ui.settingsTable.horizontalHeaderItem(0)
-            linetype = {
-                "Solid": Qt.PenStyle.SolidLine,
-                "Dashed": Qt.PenStyle.DashLine,
-            }[self.ui.settingsTable.item(0, i).text()]
-            width = int(self.ui.settingsTable.item(1, i).text())
-            symbol = self.ui.settingsTable.item(2, i).text()
-            size = int(self.ui.settingsTable.item(3, i).text())
-            color = self.ui.settingsTable.item(4, i).text()
-            self.plot_widget.plot(
-                x_vals,
-                y_vals,
-                pen=pg.mkPen(color=color, width=width, style=linetype),
-                name=name,
-                symbol=symbol,
-                symbolSize=size,
-                symbolBrush=color,
-            )
-=======
         self.setup_base_ui(self.ui.parent_ui)
 
         self.ui.xVariableCombo.currentIndexChanged.connect(self.plot)
@@ -393,7 +306,6 @@ class LinePlot(Plot):
                 name=y_var.name,
             )
             plotted_count += 1
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
 
 class HistogramPlot(Plot):
