@@ -1,22 +1,7 @@
 from ui_mainwindow import Ui_MainWindow
 
-<<<<<<< HEAD
-from PySide6.QtWidgets import QHeaderView, QMainWindow, QWidget
-
-=======
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import (
-    QHBoxLayout,
-    QHeaderView,
-    QLabel,
-    QMainWindow,
-    QPushButton,
-    QStackedWidget,
-    QTableView,
-    QVBoxLayout,
-    QWidget,
-)
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
+from PySide6.QtWidgets import QHeaderView, QMainWindow, QWidget
 from .plot_manager import PlotManager
 
 
@@ -31,25 +16,6 @@ class MainWindow(QMainWindow):
         self.constantsTable = self.ui.constantsTable
         self.workspacePages = self.ui.workspacePages
 
-<<<<<<< HEAD
-=======
-        self._build_workspace_pages()
-
-        # Растягиваем столбцы таблиц значений и приборов на всю ширину
-        self.ui.tableValues.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.ui.tableInstruments.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-        # Скрываем боковую нумерацию строк, чтобы не дублировать столбец N
-        self.ui.tableValues.verticalHeader().setVisible(False)
-        self.ui.tableInstruments.verticalHeader().setVisible(False)
-
-        # Инициализируем менеджер графиков
-        self.plot_manager = PlotManager(self.ui)
-        self.variableListChanged.connect(self.plot_manager.refresh_variable_lists)
-        self.show_variables_page()
-
-    def _setup_page_nav_styles(self) -> None:
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
         self._page_buttons = {
             "variables": self.ui.btnPageValues,
             "constants": self.ui.btnPageConstants,
@@ -80,6 +46,7 @@ class MainWindow(QMainWindow):
         self.ui.tableInstruments.verticalHeader().setVisible(False)
 
         self.plot_manager = PlotManager(self.ui)
+        self.variableListChanged.connect(self.plot_manager.refresh_variable_lists)
         self.show_variables_page()
 
     def _set_active_page(self, page_key: str) -> None:

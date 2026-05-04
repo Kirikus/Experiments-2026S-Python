@@ -227,8 +227,4 @@ class MainController:
         self._tree.refresh(self.experiment)
         if refresh_instrument_model:
             self.instrument_table_model.refresh()
-<<<<<<< HEAD
-=======
         self.window.variableListChanged.emit()
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
-        self.window.plot_manager.refresh_variable_lists()
