@@ -101,14 +101,38 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayoutPlot">
           <item>
-           <widget class="QPushButton" name="_btn_add_tab">
-            <property name="text">
-             <string>Создать график</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="plotToolbarLayout">
+            <item>
+             <widget class="QPushButton" name="btnGetGraph">
+              <property name="text">
+               <string>Получить график</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="_btn_add_tab">
+              <property name="text">
+               <string>Добавить вкладку</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="plotToolbarSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QChartView" name="plotChartView" native="true">
+           <widget class="QTabWidget" name="plotTabs">
             <property name="minimumSize">
              <size>
               <width>200</width>

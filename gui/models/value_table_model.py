@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 
 from src import VariableCalculated, VariableMeasured
 
 
 class ValueTableModel(QAbstractTableModel):
     """Модель правой таблицы значений/погрешностей для выбранной сущности."""
+
+    validationFailed = Signal(str)
 
     def __init__(self) -> None:
         super().__init__()

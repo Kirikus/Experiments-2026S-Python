@@ -1,5 +1,6 @@
 from ui_mainwindow import Ui_MainWindow
 
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QHeaderView,
@@ -15,6 +16,8 @@ from .plot_manager import PlotManager
 
 
 class MainWindow(QMainWindow):
+    variableListChanged = Signal()
+
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
         self.ui = Ui_MainWindow()
@@ -40,7 +43,8 @@ class MainWindow(QMainWindow):
         self.ui.tableInstruments.verticalHeader().setVisible(False)
 
         # Инициализируем менеджер графиков
-        self.plot_manager = PlotManager(self.ui.plotChartView, self.ui)
+        self.plot_manager = PlotManager(self.ui)
+        self.variableListChanged.connect(self.plot_manager.refresh_variable_lists)
         self.show_variables_page()
 
     def _setup_page_nav_styles(self) -> None:
