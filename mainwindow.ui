@@ -107,7 +107,6 @@ QPushButton:checked {
         </layout>
        </item>
        <item>
-<<<<<<< HEAD
         <widget class="QStackedWidget" name="workspacePages">
          <widget class="QWidget" name="variables_page">
           <layout class="QVBoxLayout" name="variablesLayout">
@@ -279,93 +278,6 @@ QPushButton:checked {
            </item>
           </layout>
          </widget>
-=======
-        <widget class="QTableWidget" name="tableValues">
-         <property name="alternatingRowColors">
-          <bool>true</bool>
-         </property>
-         <column>
-          <property name="text">
-           <string>N</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Значение</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Погрешность</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="plotGroup">
-         <property name="title">
-          <string>График</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayoutPlot">
-          <item>
-           <layout class="QHBoxLayout" name="plotToolbarLayout">
-            <item>
-             <widget class="QPushButton" name="btnGetGraph">
-              <property name="text">
-               <string>Получить график</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="_btn_add_tab">
-              <property name="text">
-               <string>Добавить вкладку</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="plotToolbarSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTabWidget" name="plotTabs">
-            <property name="minimumSize">
-             <size>
-              <width>200</width>
-              <height>150</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="instrumentsGroup">
-         <property name="title">
-          <string>Приборы</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayoutInstruments">
-          <item>
-           <widget class="QTableView" name="tableInstruments">
-            <property name="alternatingRowColors">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
->>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
         </widget>
        </item>
        <item>
