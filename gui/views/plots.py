@@ -6,9 +6,14 @@ from typing import Any
 
 import numpy as np
 import pyqtgraph as pg
+<<<<<<< HEAD
 from PySide6.QtCore import QRectF
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget
+=======
+from PySide6.QtCore import QRectF, Qt
+from PySide6.QtWidgets import QTableWidgetItem, QVBoxLayout, QWidget
+>>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
 from gui.views.ui_approximation_plot import Ui_ApproximationPlot
 from gui.views.ui_correlogram_plot import Ui_CorrelogramPlot
@@ -50,10 +55,21 @@ class Plot(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.experiment = Experiment.get_experiment()
+<<<<<<< HEAD
 
     @property
     def plot_widget(self) -> pg.PlotWidget:
         return self.ui._base.ui.plotWidget
+=======
+        self._source_data: Any | None = None
+        self._base: Ui_PlotBase | None = None
+
+    @property
+    def plot_widget(self) -> pg.PlotWidget:
+        if self._base is None:
+            raise RuntimeError("Ui_PlotBase не инициализирован")
+        return self._base.plotWidget
+>>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
     def setup_base_ui(self, parent_ui: QWidget) -> None:
         """Создает Ui_PlotBase и переносит его содержимое в parent_ui."""
@@ -99,11 +115,21 @@ class Plot(QWidget):
         y_combo.addItems(variable_names)
         y_combo.blockSignals(False)
 
+<<<<<<< HEAD
     def plot(self) -> None:
         self.plot_widget.clear()
         self.plot_widget.setTitle(self.ui._base.ui.titleEdit.text())
         self.plot_widget.setLabel("bottom", self.ui._base.ui.xLabelEdit.text())
         self.plot_widget.setLabel("left", self.ui._base.ui.yLabelEdit.text())
+=======
+    def _apply_base_labels(self) -> None:
+        if self._base is None:
+            return
+        self.plot_widget.setTitle(self._base.titleEdit.text())
+        self.plot_widget.setLabel("bottom", self._base.xLabelEdit.text())
+        self.plot_widget.setLabel("left", self._base.yLabelEdit.text())
+
+>>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
 class ScatterPlot(Plot):
     _SYMBOLS = {
@@ -177,6 +203,7 @@ class ScatterPlot(Plot):
 
 
 class LinePlot(Plot):
+<<<<<<< HEAD
     _COLOR_MAP = {
         "Синий": (0, 122, 204),
         "Красный": (204, 0, 0),
@@ -192,11 +219,14 @@ class LinePlot(Plot):
         #TODO: use this slot to update settings table then Variable is removed.
         ...
 
+=======
+>>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
+<<<<<<< HEAD
 
         #TODO: populate ui.settingsTable and connect it to MainWindow signals
         #FIXME: remove all references to self.ui.yVariableCombo and similar fields
@@ -257,6 +287,113 @@ class LinePlot(Plot):
                 symbolSize=size,
                 symbolBrush=color,
             )
+=======
+        self.setup_base_ui(self.ui.parent_ui)
+
+        self.ui.xVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.settingsTable.itemChanged.connect(self.plot)
+        self._fill_variable_controls()
+
+    def set_source_data(self, data: Any | None) -> None:
+        super().set_source_data(data)
+        self._fill_variable_controls()
+
+    def _fill_variable_controls(self) -> None:
+        variable_names = [v.name for v in self.experiment.get_variables()]
+
+        selected_x = self.ui.xVariableCombo.currentText()
+        self.ui.xVariableCombo.blockSignals(True)
+        self.ui.xVariableCombo.clear()
+        self.ui.xVariableCombo.addItem("Индекс")
+        self.ui.xVariableCombo.addItems(variable_names)
+        restore_x_index = self.ui.xVariableCombo.findText(selected_x)
+        self.ui.xVariableCombo.setCurrentIndex(restore_x_index if restore_x_index >= 0 else 0)
+        self.ui.xVariableCombo.blockSignals(False)
+
+        checked_by_name: dict[str, bool] = {}
+        table = self.ui.settingsTable
+        for col in range(table.columnCount()):
+            header_item = table.horizontalHeaderItem(col)
+            flag_item = table.item(1, col)
+            if header_item is None or flag_item is None:
+                continue
+            checked_by_name[header_item.text()] = flag_item.checkState() == Qt.CheckState.Checked
+
+        table.blockSignals(True)
+        table.clearContents()
+        table.setRowCount(2)
+        table.setColumnCount(len(variable_names))
+        table.setVerticalHeaderLabels(["Переменная Y", "Показать"])
+        table.setHorizontalHeaderLabels(variable_names)
+
+        for col, var_name in enumerate(variable_names):
+            name_item = QTableWidgetItem(var_name)
+            name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            table.setItem(0, col, name_item)
+
+            enabled_item = QTableWidgetItem()
+            enabled_item.setFlags(
+                (enabled_item.flags() | Qt.ItemFlag.ItemIsUserCheckable) & ~Qt.ItemFlag.ItemIsEditable
+            )
+            enabled_item.setCheckState(
+                Qt.CheckState.Checked
+                if checked_by_name.get(var_name, True)
+                else Qt.CheckState.Unchecked
+            )
+            table.setItem(1, col, enabled_item)
+
+        table.resizeColumnsToContents()
+        table.blockSignals(False)
+
+    def plot(self) -> None:
+        self.plot_widget.clear()
+        self._apply_base_labels()
+
+        table = self.ui.settingsTable
+        if table.columnCount() == 0:
+            return
+
+        palette = [
+            (0, 122, 204),
+            (204, 0, 0),
+            (0, 153, 76),
+            (122, 0, 153),
+            (255, 140, 0),
+            (0, 0, 0),
+        ]
+        x_name = self.ui.xVariableCombo.currentText()
+
+        plotted_count = 0
+        for col in range(table.columnCount()):
+            header_item = table.horizontalHeaderItem(col)
+            enabled_item = table.item(1, col)
+            if header_item is None or enabled_item is None:
+                continue
+            if enabled_item.checkState() != Qt.CheckState.Checked:
+                continue
+
+            y_var = self.get_variable_by_name(header_item.text())
+            if y_var is None or y_var.count() == 0:
+                continue
+            y_vals = list(y_var.values)
+
+            if x_name == "Индекс":
+                x_vals = list(range(len(y_vals)))
+            else:
+                x_var = self.get_variable_by_name(x_name)
+                if x_var is None or x_var.count() != len(y_vals):
+                    continue
+                x_vals = list(x_var.values)
+
+            color = palette[plotted_count % len(palette)]
+            self.plot_widget.plot(
+                x_vals,
+                y_vals,
+                pen=pg.mkPen(color=color, width=2),
+                name=y_var.name,
+            )
+            plotted_count += 1
+>>>>>>> afdc0f2 (Refactor plot tabs and line plot settings (ui files removed from tracking))
 
 
 class HistogramPlot(Plot):
