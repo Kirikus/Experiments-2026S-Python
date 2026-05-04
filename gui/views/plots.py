@@ -8,7 +8,9 @@ import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import QRectF
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QStyledItemDelegate, QSpinBox
+
+
 
 from gui.views.ui_approximation_plot import Ui_ApproximationPlot
 from gui.views.ui_correlogram_plot import Ui_CorrelogramPlot
@@ -198,6 +200,8 @@ class LinePlot(Plot):
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
 
+        
+
         #TODO: populate ui.settingsTable and connect it to MainWindow signals
         #FIXME: remove all references to self.ui.yVariableCombo and similar fields
         #FIXME: remove all references to self.set_source_data and similar methods
@@ -229,7 +233,6 @@ class LinePlot(Plot):
 
     def plot(self) -> None:
         super().plot()
-
         for i, variable in enumerate(Experiment.get_experiment().get_variables()):
             # Skip invisible lines
             if self.ui.settingsTable.item(5, i).text() == "False":

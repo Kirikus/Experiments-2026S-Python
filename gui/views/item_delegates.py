@@ -2,7 +2,7 @@ from __future__ import annotations
 from ui_mainwindow import Ui_MainWindow
 from PySide6.QtCore import QLocale, Qt
 from PySide6.QtGui import QDoubleValidator
-from PySide6.QtWidgets import QComboBox, QLineEdit, QStyledItemDelegate, QWidget
+from PySide6.QtWidgets import QComboBox, QLineEdit, QStyledItemDelegate, QWidget, QSpinBox
 
 
 class FloatValueDelegate(QStyledItemDelegate):
@@ -66,3 +66,36 @@ class InstrumentTypeDelegate(QStyledItemDelegate):
         if not isinstance(editor, QComboBox):
             return
         model.setData(index, editor.currentText(), Qt.EditRole)
+
+
+
+class SpinBoxDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def createEditor(self, parent: QWidget, option, index) -> QWidget:
+        """Создаёт редактор — QSpinBox для редактирования целых чисел."""
+        editor = QSpinBox(parent)
+        editor.setFrame(False)
+        editor.setMinimum(0)
+        editor.setMaximum(100)
+        return editor
+
+    def setEditorData(self, editor: QWidget, index) -> None:
+        """Устанавливает данные из модели в редактор."""
+        value = index.model().data(index, Qt.EditRole)
+        try:
+            editor.setValue(int(value))
+        except (ValueError, TypeError):
+            editor.setValue(0)  # значение по умолчанию при ошибке
+
+    def setModelData(self, editor: QWidget, model, index) -> None:
+        """Сохраняет данные из редактора в модель."""
+        spin_box = editor
+        spin_box.interpretText()
+        value = spin_box.value()
+        model.setData(index, value, Qt.EditRole)
+
+    def updateEditorGeometry(self, editor: QWidget, option, index) -> None:
+        """Обновляет геометрию редактора согласно параметрам представления."""
+        editor.setGeometry(option.rect)

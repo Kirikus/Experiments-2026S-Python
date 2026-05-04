@@ -29,19 +29,11 @@ class MainWindow(QMainWindow):
             "formulas": 4,
         }
 
-        self.ui.btnPageValues.clicked.connect(self.show_variables_page)
-        self.ui.btnPageConstants.clicked.connect(self.show_constants_page)
-        self.ui.btnPageInstruments.clicked.connect(self.show_instruments_page)
-        self.ui.btnPageGraph.clicked.connect(self.show_graph_page)
-        self.ui.btnPageFormulas.clicked.connect(self.show_formulas_page)
 
         self.ui.tableValues.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.constantsTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.ui.tableInstruments.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-        self.ui.tableValues.verticalHeader().setVisible(False)
-        self.constantsTable.verticalHeader().setVisible(False)
-        self.ui.tableInstruments.verticalHeader().setVisible(False)
 
         self.plot_manager = PlotManager(self.ui)
         self.show_variables_page()
