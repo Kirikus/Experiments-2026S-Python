@@ -77,7 +77,7 @@ class PlotManager:
         self._tab_widget: QTabWidget = self.ui.plotTabs
         self._tab_widget.setTabsClosable(True)
         self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
-        self.add_plot_tab(ScatterPlot)
+        self.add_plot_tab(LinePlot)
 
     def set_source_variable(self, variable: Any | None) -> None:
         self._source_variable = variable
