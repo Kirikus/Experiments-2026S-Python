@@ -39,12 +39,12 @@ class Plot(QWidget):
                 return variable
         return None
 
-    def _apply_base_labels(self) -> None:
-        if self._base is None:
-            return
+    def plot(self) -> None:
+        self.plot_widget.clear()
         self.plot_widget.setTitle(self._base.titleEdit.text())
         self.plot_widget.setLabel("bottom", self._base.xLabelEdit.text())
         self.plot_widget.setLabel("left", self._base.yLabelEdit.text())
+
 
 class LinePlot(Plot):
     _COL_LINE = 0
@@ -147,8 +147,7 @@ class LinePlot(Plot):
         table.blockSignals(False)
 
     def plot(self) -> None:
-        self.plot_widget.clear()
-        self._apply_base_labels()
+        super().plot()
 
         table = self.ui.settingsTable
         x_name = self.ui.xVariableCombo.currentText()
