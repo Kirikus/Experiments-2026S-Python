@@ -97,7 +97,7 @@ class PlotManager:
             if tab_cls is None:
                 return
 
-        plot_widget = tab_cls()
+        plot_widget = tab_cls(self._tab_widget)
 
         plot_label = self._plot_label_by_class.get(tab_cls, "График")
         tab_index = len(self._tabs) + 1
