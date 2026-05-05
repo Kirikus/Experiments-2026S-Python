@@ -174,14 +174,14 @@ class LinePlot(Plot):
                     continue
                 x_vals = list(x_var.values)
 
-            color = self._cell_color(table, row, self._COL_COLOR)
-            width = self._cell_int(table, row, self._COL_WIDTH, default=2)
+            color = self._cell_color(row, self._COL_COLOR)
+            width = self._cell_int(row, self._COL_WIDTH, default=2)
             line_style = self._LINE_STYLES.get(
-                self._cell_text(table, row, self._COL_LINE), Qt.PenStyle.SolidLine
+                self._cell_text(row, self._COL_LINE), Qt.PenStyle.SolidLine
             )
-            symbol_text = self._cell_text(table, row, self._COL_SYMBOL)
+            symbol_text = self._cell_text(row, self._COL_SYMBOL)
             symbol = None if symbol_text.lower() in ("", "none") else symbol_text
-            size = self._cell_int(table, row, self._COL_SIZE, default=5)
+            size = self._cell_int(row, self._COL_SIZE, default=5)
 
             self.plot_widget.plot(
                 x_vals,
@@ -194,22 +194,19 @@ class LinePlot(Plot):
                 symbolPen=color,
             )
 
-    @staticmethod
-    def _cell_text(table, row: int, col: int) -> str:
-        item = table.item(row, col)
+    def _cell_text(self, row: int, col: int) -> str:
+        item = self.ui.settingsTable.item(row, col)
         return item.text() if item is not None else ""
 
-    @classmethod
-    def _cell_int(cls, table, row: int, col: int, default: int) -> int:
+    def _cell_int(self, row: int, col: int, default: int) -> int:
         try:
-            return int(cls._cell_text(table, row, col))
+            return int(self._cell_text(row, col))
         except ValueError:
             return default
 
-    @classmethod
-    def _cell_color(cls, table, row: int, col: int):
-        text = cls._cell_text(table, row, col).strip()
+    def _cell_color(self, row: int, col: int):
+        text = self._cell_text(row, col).strip()
         color = QColor(text)
         if not color.isValid():
-            color = QColor(cls._DEFAULT_PALETTE[row % len(cls._DEFAULT_PALETTE)])
+            color = QColor(self._DEFAULT_PALETTE[row % len(self._DEFAULT_PALETTE)])
         return color
