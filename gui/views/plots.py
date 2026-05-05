@@ -39,28 +39,6 @@ class Plot(QWidget):
                 return variable
         return None
 
-    def _fill_xy_combos(self, x_combo, y_combo, include_index: bool = True) -> None:
-        variable_names = [v.name for v in self.experiment.get_variables()]
-
-        x_combo.blockSignals(True)
-        x_combo.clear()
-        if include_index:
-            x_combo.addItem("Индекс")
-        x_combo.addItems(variable_names)
-        x_combo.blockSignals(False)
-
-        y_combo.blockSignals(True)
-        y_combo.clear()
-        y_combo.addItems(variable_names)
-        y_combo.blockSignals(False)
-
-    def _fill_y_combo(self, y_combo) -> None:
-        variable_names = [v.name for v in self.experiment.get_variables()]
-        y_combo.blockSignals(True)
-        y_combo.clear()
-        y_combo.addItems(variable_names)
-        y_combo.blockSignals(False)
-
     def _apply_base_labels(self) -> None:
         if self._base is None:
             return
