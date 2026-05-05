@@ -46,7 +46,6 @@ class MainWindow(QMainWindow):
         self.ui.tableInstruments.verticalHeader().setVisible(False)
 
         self.plot_manager = PlotManager(self.ui)
-        self.variableListChanged.connect(self.plot_manager.refresh_variable_lists)
         self.show_variables_page()
 
     def _set_active_page(self, page_key: str) -> None:
