@@ -11,7 +11,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QStyledItemDelegate, QSpinBox
 
 
-
+from gui.views.item_delegates import *
 from gui.views.ui_approximation_plot import Ui_ApproximationPlot
 from gui.views.ui_correlogram_plot import Ui_CorrelogramPlot
 from gui.views.ui_histogram_plot import Ui_HistogramPlot
@@ -186,6 +186,22 @@ class LinePlot(Plot):
         "Черный": (0, 0, 0),
     }
 
+    _LINE_TYPES = {
+        "Solid": Qt.PenStyle.SolidLine,
+        "Dashed": Qt.PenStyle.DashLine
+    }
+
+    _POINT_TYPES = {
+        "Cross": "x",
+        "Plus": "+",
+        "None": None,
+    }
+
+    _VISIBILITY_TYPES = {
+        "True": True,
+        "False": False,
+    }
+
     def variable_added(self):
         #TODO: use this slot to update settings table then Variable is added.
         ...
@@ -199,8 +215,15 @@ class LinePlot(Plot):
 
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
-
         
+        self.ui.settingsTable.setItemDelegateForRow(0, ComboBoxDelegate(options=list(self._LINE_TYPES.keys())))
+        self.ui.settingsTable.setItemDelegateForRow(5, ComboBoxDelegate(options=list(self._VISIBILITY_TYPES.keys())))
+        self.ui.settingsTable.setItemDelegateForRow(1, SpinBoxDelegate(min = 0, max = 100))
+        self.ui.settingsTable.setItemDelegateForRow(3, SpinBoxDelegate(min = 0, max = 100))
+        self.ui.settingsTable.setItemDelegateForRow(2, ComboBoxDelegate(options=list(self._POINT_TYPES.keys())))
+        self.ui.settingsTable.setItemDelegateForRow(4, ColorDelegate())
+
+
 
         #TODO: populate ui.settingsTable and connect it to MainWindow signals
         #FIXME: remove all references to self.ui.yVariableCombo and similar fields
@@ -243,12 +266,9 @@ class LinePlot(Plot):
             x_vals = list(range(len(y_vals)))
 
             name = self.ui.settingsTable.horizontalHeaderItem(0)
-            linetype = {
-                "Solid": Qt.PenStyle.SolidLine,
-                "Dashed": Qt.PenStyle.DashLine,
-            }[self.ui.settingsTable.item(0, i).text()]
+            linetype = self._LINE_TYPES[self.ui.settingsTable.item(0, i).text()]
             width = int(self.ui.settingsTable.item(1, i).text())
-            symbol = self.ui.settingsTable.item(2, i).text()
+            symbol = self._POINT_TYPES[self.ui.settingsTable.item(2, i).text()]
             size = int(self.ui.settingsTable.item(3, i).text())
             color = self.ui.settingsTable.item(4, i).text()
             self.plot_widget.plot(
