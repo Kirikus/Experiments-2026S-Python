@@ -37,6 +37,9 @@ class CSVHandler:
     @staticmethod
     def get_csv_path(variable_name: str, experiment_dir: Path) -> Path:
         """Получить путь к CSV-файлу для переменной в подпапке data/."""
-        data_dir = experiment_dir / "data"
+        if experiment_dir.name == "data":
+            data_dir = experiment_dir
+        else:
+            data_dir = experiment_dir / "data"
         data_dir.mkdir(parents=True, exist_ok=True)
         return data_dir / f"{variable_name}.csv"
