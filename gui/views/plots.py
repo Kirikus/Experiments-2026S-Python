@@ -6,10 +6,12 @@ from typing import Any
 
 import numpy as np
 import pyqtgraph as pg
-from PySide6.QtCore import QEvent, QRectF, Qt
+from PySide6.QtCore import QEvent, QRectF, Qt, QAbstractTableModel
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QTableWidgetItem, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QTableWidgetItem, QVBoxLayout, QWidget, QStyledItemDelegate, QSpinBox
 
+
+from gui.views.item_delegates import *
 from gui.views.ui_approximation_plot import Ui_ApproximationPlot
 from gui.views.ui_correlogram_plot import Ui_CorrelogramPlot
 from gui.views.ui_histogram_plot import Ui_HistogramPlot
@@ -41,6 +43,55 @@ class Plot(QWidget):
 
     def plot(self) -> None:
         self.plot_widget.clear()
+        self._apply_base_labels()
+
+        y_var = self.get_variable_by_name(self.ui.yVariableCombo.currentText())
+        if y_var is None or y_var.count() == 0:
+            return
+        y_vals = list(y_var.values)
+
+        x_name = self.ui.xVariableCombo.currentText()
+        if x_name == "Индекс":
+            x_vals = list(range(len(y_vals)))
+        else:
+            x_var = self.get_variable_by_name(x_name)
+            if x_var is None or x_var.count() != len(y_vals):
+                return
+            x_vals = list(x_var.values)
+
+        symbol = self.ui.symbolCombo.currentData() or "o"
+        self.plot_widget.plot(
+            x_vals,
+            y_vals,
+            pen=None,
+            symbol=symbol,
+            symbolSize=self.ui.sizeSpin.value(),
+            symbolBrush=(0, 122, 204),
+            symbolPen=(0, 122, 204),
+            name=y_var.name,
+        )
+class LineSettingTableModle(QAbstractTableModel):
+    def rowCount(self, parent: QTabelIndex = ...) -> int:
+        return 5
+    def columnCount(self, parent: QModelIndex = ...) -> int:
+        print("LineSettingTableModel: ", len(Experiment.get_experiment().get_variables()))
+        return len(Experiment.get_experiment().get_variables()) + 1
+    def data(self, index, /, role = ...):
+        if role == Qt.ItemDataRole.DisplayRole:
+            return Experiment.get_experiment().get_variables()[index.count()].name
+        return ""
+    def headerData(self, section, orientation, role = ...):
+        if role == Qt.ItemDataRole.DisplayRole:
+            if orientation == Qt.Orientation.Horizontal:
+                return "H"
+            else:
+                return "V"
+        return ""
+    
+    def flags(self, index, /):
+        if index.row() == 4:
+            return super().flags(index) | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsUserCheckable
+        return super().flags(index) | Qt.ItemFlag.ItemIsEditable
         self.plot_widget.setTitle(self._base.titleEdit.text())
         self.plot_widget.setLabel("bottom", self._base.xLabelEdit.text())
         self.plot_widget.setLabel("left", self._base.yLabelEdit.text())
@@ -68,6 +119,15 @@ class LinePlot(Plot):
 
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
+        
+        self.ui.settingsTable.setItemDelegateForRow(0, ComboBoxDelegate(options=list(self._LINE_TYPES.keys())))
+        self.ui.settingsTable.setItemDelegateForRow(5, ComboBoxDelegate(options=list(self._VISIBILITY_TYPES.keys())))
+        self.ui.settingsTable.setItemDelegateForRow(1, SpinBoxDelegate(min = 0, max = 100))
+        self.ui.settingsTable.setItemDelegateForRow(3, SpinBoxDelegate(min = 0, max = 100))
+        self.ui.settingsTable.setItemDelegateForRow(2, ComboBoxDelegate(options=list(self._POINT_TYPES.keys())))
+        self.ui.settingsTable.setItemDelegateForRow(4, ColorDelegate())
+
+
         # Новая архитектура: PlotBase встроен как кастомный виджет в .ui,
         # переиспользуем его внутренний Ui_PlotBase под Plot.plot_widget / _apply_base_labels.
         self._base = self.ui._base.ui

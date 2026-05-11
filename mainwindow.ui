@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-        <width>820</width>
-        <height>900</height>
+    <width>820</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,51 +56,51 @@ QPushButton:checked {
         <layout class="QHBoxLayout" name="nav_layout">
          <item>
           <widget class="QPushButton" name="btnPageValues">
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
            <property name="text">
             <string>Переменные</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btnPageConstants">
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
            <property name="text">
             <string>Константы</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btnPageInstruments">
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
            <property name="text">
             <string>Инструменты</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btnPageGraph">
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
            <property name="text">
             <string>Графики</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btnPageFormulas">
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
            <property name="text">
             <string>Формулы</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -127,6 +127,9 @@ QPushButton:checked {
              <property name="alternatingRowColors">
               <bool>true</bool>
              </property>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
             </widget>
            </item>
           </layout>
@@ -150,6 +153,9 @@ QPushButton:checked {
              <property name="alternatingRowColors">
               <bool>true</bool>
              </property>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
             </widget>
            </item>
           </layout>
@@ -179,6 +185,12 @@ QPushButton:checked {
                 <property name="alternatingRowColors">
                  <bool>true</bool>
                 </property>
+                <attribute name="horizontalHeaderVisible">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
                </widget>
               </item>
              </layout>
@@ -207,38 +219,38 @@ QPushButton:checked {
              </property>
              <layout class="QVBoxLayout" name="verticalLayoutPlot">
               <item>
-                             <layout class="QHBoxLayout" name="plotToolbarLayout">
-                                <item>
-                                 <widget class="QPushButton" name="btnGetGraph">
-                                    <property name="text">
-                                     <string>Получить график</string>
-                                    </property>
-                                 </widget>
-                                </item>
-                                <item>
-                                 <widget class="QPushButton" name="_btn_add_tab">
-                                    <property name="text">
-                                     <string>Добавить вкладку</string>
-                                    </property>
-                                 </widget>
-                                </item>
-                                <item>
-                                 <spacer name="plotToolbarSpacer">
-                                    <property name="orientation">
-                                     <enum>Qt::Horizontal</enum>
-                                    </property>
-                                    <property name="sizeHint" stdset="0">
-                                     <size>
-                                        <width>40</width>
-                                        <height>20</height>
-                                     </size>
-                                    </property>
-                                 </spacer>
-                                </item>
-                             </layout>
+               <layout class="QHBoxLayout" name="plotToolbarLayout">
+                <item>
+                 <widget class="QPushButton" name="btnGetGraph">
+                  <property name="text">
+                   <string>Получить график</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="_btn_add_tab">
+                  <property name="text">
+                   <string>Добавить вкладку</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="plotToolbarSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
               <item>
-                             <widget class="QTabWidget" name="plotTabs">
+               <widget class="QTabWidget" name="plotTabs">
                 <property name="minimumSize">
                  <size>
                   <width>200</width>
@@ -268,11 +280,11 @@ QPushButton:checked {
            </property>
            <item>
             <widget class="QLabel" name="formulas_hint">
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
              <property name="text">
               <string>Заглушка: здесь будет редактор и список формул.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -341,8 +353,8 @@ QPushButton:checked {
     <rect>
      <x>0</x>
      <y>0</y>
-      <width>820</width>
-     <height>25</height>
+     <width>820</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -403,7 +415,94 @@ QPushButton:checked {
    </property>
   </action>
  </widget>
- <customwidgets/>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>btnPageValues</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>show_variables_page()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>290</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>28</x>
+     <y>-5</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnPageConstants</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>show_constants_page()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>416</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>84</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnPageInstruments</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>show_instruments_page()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>500</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>168</x>
+     <y>-10</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnPageGraph</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>show_graph_page()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>659</x>
+     <y>56</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>307</x>
+     <y>-6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnPageFormulas</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>show_formulas_page()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>754</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>466</x>
+     <y>-2</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>show_variables_page()</slot>
+  <slot>show_constants_page()</slot>
+  <slot>show_formulas_page()</slot>
+  <slot>show_instruments_page()</slot>
+  <slot>show_graph_page()</slot>
+ </slots>
 </ui>

@@ -15,7 +15,22 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="PlotBase" name="_base" native="true"/>
+    <widget class="PlotBase" name="_base" native="true">
+     <layout class="QVBoxLayout" name="parentLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+     </layout>
+    </widget>
    </item>
    <item>
     <layout class="QFormLayout" name="settingsLayout">
@@ -29,7 +44,79 @@
      <item row="0" column="1">
       <widget class="QComboBox" name="xVariableCombo"/>
      </item>
-     <item row="1" column="0" colspan="2">
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelYVar">
+       <property name="text">
+        <string>Переменная Y</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="yVariableCombo"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelColor">
+       <property name="text">
+        <string>Цвет</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="colorCombo">
+       <item>
+        <property name="text">
+         <string>Синий</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Красный</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Зеленый</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Черный</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelWidth">
+       <property name="text">
+        <string>Переменная X</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="xVariableCombo"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Тип</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="comboBox">
+       <item>
+        <property name="text">
+         <string>Линия</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Точки</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="5" column="0" colspan="2">
       <widget class="QTableWidget" name="settingsTable">
        <column>
         <property name="text">
@@ -61,6 +148,96 @@
          <string>Видимость</string>
         </property>
        </column>
+       <item row="0" column="0">
+        <property name="text">
+         <string>Solid</string>
+        </property>
+       </item>
+       <item row="0" column="1">
+        <property name="text">
+         <string>Solid</string>
+        </property>
+       </item>
+       <item row="0" column="2">
+        <property name="text">
+         <string>Solid</string>
+        </property>
+       </item>
+       <item row="1" column="0">
+        <property name="text">
+         <string>3</string>
+        </property>
+       </item>
+       <item row="1" column="1">
+        <property name="text">
+         <string>3</string>
+        </property>
+       </item>
+       <item row="1" column="2">
+        <property name="text">
+         <string>3</string>
+        </property>
+       </item>
+       <item row="2" column="0">
+        <property name="text">
+         <string>Cross</string>
+        </property>
+       </item>
+       <item row="2" column="1">
+        <property name="text">
+         <string>None</string>
+        </property>
+       </item>
+       <item row="2" column="2">
+        <property name="text">
+         <string>Plus</string>
+        </property>
+       </item>
+       <item row="3" column="0">
+        <property name="text">
+         <string>1</string>
+        </property>
+       </item>
+       <item row="3" column="1">
+        <property name="text">
+         <string>2</string>
+        </property>
+       </item>
+       <item row="3" column="2">
+        <property name="text">
+         <string>3</string>
+        </property>
+       </item>
+       <item row="4" column="0">
+        <property name="text">
+         <string>#FF0000</string>
+        </property>
+       </item>
+       <item row="4" column="1">
+        <property name="text">
+         <string>#00FF00</string>
+        </property>
+       </item>
+       <item row="4" column="2">
+        <property name="text">
+         <string>#0000FF</string>
+        </property>
+       </item>
+       <item row="5" column="0">
+        <property name="text">
+         <string>True</string>
+        </property>
+       </item>
+       <item row="5" column="1">
+        <property name="text">
+         <string>False</string>
+        </property>
+       </item>
+       <item row="5" column="2">
+        <property name="text">
+         <string>True</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>
