@@ -105,6 +105,27 @@
        </property>
       </widget>
      </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Тип</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="comboBox">
+       <item>
+        <property name="text">
+         <string>Линия</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Точки</string>
+        </property>
+       </item>
+      </widget>
+     </item>
      <item row="5" column="0" colspan="2">
       <widget class="QTableWidget" name="settingsTable">
        <row>
@@ -240,37 +261,6 @@
        <item row="5" column="2">
         <property name="text">
          <string>True</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QCheckBox" name="show_line">
-       <property name="text">
-        <string>Показать линию</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Тип</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QComboBox" name="comboBox">
-       <item>
-        <property name="text">
-         <string>Линия</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Точки</string>
         </property>
        </item>
       </widget>

@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import QRectF
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QAbstractTableModel
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QStyledItemDelegate, QSpinBox
 
 
@@ -176,7 +176,28 @@ class ScatterPlot(Plot):
             symbolPen=(0, 122, 204),
             name=y_var.name,
         )
-
+class LineSettingTableModle(QAbstractTableModel):
+    def rowCount(self, parent: QTabelIndex = ...) -> int:
+        return 5
+    def columnCount(self, parent: QModelIndex = ...) -> int:
+        print("LineSettingTableModel: ", len(Experiment.get_experiment().get_variables()))
+        return len(Experiment.get_experiment().get_variables()) + 1
+    def data(self, index, /, role = ...):
+        if role == Qt.ItemDataRole.DisplayRole:
+            return Experiment.get_experiment().get_variables()[index.count()].name
+        return ""
+    def headerData(self, section, orientation, role = ...):
+        if role == Qt.ItemDataRole.DisplayRole:
+            if orientation == Qt.Orientation.Horizontal:
+                return "H"
+            else:
+                return "V"
+        return ""
+    
+    def flags(self, index, /):
+        if index.row() == 4:
+            return super().flags(index) | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsUserCheckable
+        return super().flags(index) | Qt.ItemFlag.ItemIsEditable
 
 class LinePlot(Plot):
     _COLOR_MAP = {
