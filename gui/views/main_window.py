@@ -1,11 +1,13 @@
 from ui_mainwindow import Ui_MainWindow
 
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QHeaderView, QMainWindow, QWidget
-
 from .plot_manager import PlotManager
 
 
 class MainWindow(QMainWindow):
+    variableListChanged = Signal()
+
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
         self.ui = Ui_MainWindow()

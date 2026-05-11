@@ -5,17 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import (
-    QComboBox,
-    QInputDialog,
-    QLabel,
-    QStackedWidget,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QInputDialog, QTabWidget, QVBoxLayout, QWidget
 
-from gui.views.plots import Plot, ScatterPlot, LinePlot, HistogramPlot, ApproximationPlot, CorrelogramPlot
+from gui.views.plots import Plot, LinePlot
 
 
 class PlotTab:
@@ -24,68 +16,38 @@ class PlotTab:
     def __init__(self, plot_widget: Plot, title: str) -> None:
         self.plot_impl = plot_widget
         self.tab_title = title
-        self._source_variable: Any | None = None
 
         self.widget = QWidget()
         layout = QVBoxLayout(self.widget)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        self.combo_type = QComboBox(self.widget)
-        self.combo_type.addItems(["График", "Сообщение"])
-        self.combo_type.currentIndexChanged.connect(self._sync_stack)
-
-        self.stacked_widget = QStackedWidget(self.widget)
-        self.stacked_widget.addWidget(self.plot_impl)
-
-        self._message_page = QLabel("Нет данных", self.stacked_widget)
-        self._message_page.setWordWrap(True)
-        self.stacked_widget.addWidget(self._message_page)
-
-        layout.addWidget(self.combo_type)
-        layout.addWidget(self.stacked_widget)
-        self._sync_stack()
-
-    def _sync_stack(self, *_args: object) -> None:
-        self.stacked_widget.setCurrentIndex(self.combo_type.currentIndex())
-
-    def set_source_variable(self, variable: Any | None) -> None:
-        self._source_variable = variable
-        self.plot_impl.set_source_variable(variable)
+        layout.addWidget(self.plot_impl)
 
     def plot(self) -> None:
-        if self._source_variable is None:
-            self._message_page.setText("Выберите переменную и нажмите «Получить график»")
-            self.combo_type.setCurrentIndex(1)
+        y_combo = getattr(self.plot_impl.ui, "yVariableCombo", None)
+        settings_table = getattr(self.plot_impl.ui, "settingsTable", None)
+
+        if y_combo is not None and y_combo.currentText().strip() == "":
             return
 
-        y_combo = getattr(self.plot_impl.ui, "yVariableCombo", None)
-        if y_combo is None or y_combo.currentText().strip() == "":
-            self._message_page.setText("Выберите переменную для оси Y")
-            self.combo_type.setCurrentIndex(1)
+        if settings_table is not None and settings_table.columnCount() == 0:
             return
 
         try:
             self.plot_impl.plot()
-            self.combo_type.setCurrentIndex(0)
         except ValueError as exc:
-            self._message_page.setText(str(exc))
-            self.combo_type.setCurrentIndex(1)
+            print(f"Plot error: {exc}")
 
 
 class PlotManager:
     """Менеджер вкладок графиков."""
 
     _PLOT_CLASSES = [
-        ("Точки", ScatterPlot),
         ("Линия", LinePlot),
-        ("Гистограмма", HistogramPlot),
-        ("Аппроксимация", ApproximationPlot),
-        ("Коррелограмма", CorrelogramPlot),
     ]
 
     def __init__(self, ui) -> None:
         self.ui = ui
-        self._source_variable: Any | None = None
         self._tabs: list[PlotTab] = []
         self._plot_class_by_label = {label: cls for label, cls in self._PLOT_CLASSES}
         self._plot_label_by_class = {cls: label for label, cls in self._PLOT_CLASSES}
@@ -103,11 +65,6 @@ class PlotManager:
         self._tab_widget.setTabsClosable(True)
         self._tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
         self.add_plot_tab(LinePlot)
-
-    def set_source_variable(self, variable: Any | None) -> None:
-        self._source_variable = variable
-        for plot_tab in self._tabs:
-            plot_tab.set_source_variable(variable)
 
     def refresh_graph(self) -> None:
         self._refresh_timer.start()
@@ -140,8 +97,7 @@ class PlotManager:
             if tab_cls is None:
                 return
 
-        plot_widget = tab_cls()
-        plot_widget.set_source_variable(self._source_variable)
+        plot_widget = tab_cls(self._tab_widget)
 
         plot_label = self._plot_label_by_class.get(tab_cls, "График")
         tab_index = len(self._tabs) + 1
@@ -152,10 +108,6 @@ class PlotManager:
         self._tab_widget.addTab(tab.widget, tab.tab_title)
         self._tab_widget.setCurrentWidget(tab.widget)
         tab.plot()
-
-    def refresh_variable_lists(self) -> None:
-        for tab in self._tabs:
-            tab.plot_impl.set_source_variable(self._source_variable)
 
     def _on_tab_close_requested(self, tab_index: int) -> None:
         if self._tab_widget.count() <= 1:
