@@ -9,7 +9,7 @@ import pyqtgraph as pg
 from PySide6.QtCore import QEvent, QRectF, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QTableWidgetItem, QVBoxLayout, QWidget
-
+from gui.views.item_delegates import ColorDelegate, ComboBoxDelegate, SpinBoxDelegate
 from gui.views.ui_approximation_plot import Ui_ApproximationPlot
 from gui.views.ui_correlogram_plot import Ui_CorrelogramPlot
 from gui.views.ui_histogram_plot import Ui_HistogramPlot
@@ -54,10 +54,20 @@ class LinePlot(Plot):
     _COL_COLOR = 4
     _COL_VISIBLE = 5
 
-    _LINE_STYLES = {
+    _LINE_TYPES = {
         "Solid": Qt.PenStyle.SolidLine,
         "Dashed": Qt.PenStyle.DashLine,
         "Dotted": Qt.PenStyle.DotLine,
+    }
+    _LINE_STYLES = _LINE_TYPES
+
+    _POINT_TYPES = {
+        "None": None,
+    }
+
+    _VISIBILITY_TYPES = {
+        "True": True,
+        "False": False,
     }
     _DEFAULT_PALETTE = ["#1F77B4", "#D62728", "#2CA02C", "#9467BD", "#FF7F0E", "#000000"]
     _DEFAULTS = ("Solid", "2", "None", "5", "#1F77B4", "True")
@@ -68,6 +78,14 @@ class LinePlot(Plot):
 
         self.ui = Ui_LinePlot()
         self.ui.setupUi(self)
+
+        self.ui.settingsTable.setItemDelegateForColumn(0, ComboBoxDelegate(options=list(self._LINE_TYPES.keys())),)
+        self.ui.settingsTable.setItemDelegateForColumn(5, ComboBoxDelegate(options=list(self._VISIBILITY_TYPES.keys())),)
+        self.ui.settingsTable.setItemDelegateForColumn(1, SpinBoxDelegate(min=0, max=100),)
+        self.ui.settingsTable.setItemDelegateForColumn(3, SpinBoxDelegate(min=0, max=100),)
+        self.ui.settingsTable.setItemDelegateForColumn(2, ComboBoxDelegate(options=list(self._POINT_TYPES.keys())),)
+        self.ui.settingsTable.setItemDelegateForColumn(4, ColorDelegate(),)
+
         # Новая архитектура: PlotBase встроен как кастомный виджет в .ui,
         # переиспользуем его внутренний Ui_PlotBase под Plot.plot_widget / _apply_base_labels.
         self._base = self.ui._base.ui
@@ -180,7 +198,7 @@ class LinePlot(Plot):
                 self._cell_text(row, self._COL_LINE), Qt.PenStyle.SolidLine
             )
             symbol_text = self._cell_text(row, self._COL_SYMBOL)
-            symbol = None if symbol_text.lower() in ("", "none") else symbol_text
+            symbol = self._POINT_TYPES.get(symbol_text, None)
             size = self._cell_int(row, self._COL_SIZE, default=5)
 
             self.plot_widget.plot(
@@ -210,3 +228,101 @@ class LinePlot(Plot):
         if not color.isValid():
             color = QColor(self._DEFAULT_PALETTE[row % len(self._DEFAULT_PALETTE)])
         return color
+class HistogramPlot(Plot):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+
+        self.ui = Ui_HistogramPlot()
+        self.ui.setupUi(self)
+
+        self._base_widget = QWidget(self.ui.parent_ui)
+        self._base = Ui_PlotBase()
+        self._base.setupUi(self._base_widget)
+        self.ui.parentLayout.addWidget(self._base_widget)
+
+        self.plot_widget.setBackground("w")
+        self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
+
+        self.ui.yVariableCombo.currentIndexChanged.connect(self.plot)
+        self.ui.binsSpin.valueChanged.connect(self.plot)
+
+        self._main_window_signal_bound = False
+        self._sync_with_experiment()
+        self._bind_main_window_signal()
+
+    def event(self, event) -> bool:
+        if event.type() == QEvent.Type.ParentChange:
+            self._bind_main_window_signal()
+
+        return super().event(event)
+
+    def _bind_main_window_signal(self) -> None:
+        if self._main_window_signal_bound:
+            return
+
+        widget = self.parentWidget()
+
+        while widget is not None:
+            signal = getattr(widget, "variableListChanged", None)
+
+            if signal is not None and hasattr(signal, "connect"):
+                signal.connect(self._sync_with_experiment)
+                self._main_window_signal_bound = True
+                return
+
+            widget = widget.parentWidget()
+
+    def _sync_with_experiment(self) -> None:
+        variable_names = [v.name for v in self.experiment.get_variables()]
+        self._rebuild_y_combo(variable_names)
+
+    def _rebuild_y_combo(self, variable_names: list[str]) -> None:
+        combo = self.ui.yVariableCombo
+        previous = combo.currentText()
+
+        combo.blockSignals(True)
+        combo.clear()
+        combo.addItems(variable_names)
+
+        restore = combo.findText(previous)
+        combo.setCurrentIndex(restore if restore >= 0 else 0)
+
+        combo.blockSignals(False)
+
+    def plot(self) -> None:
+        super().plot()
+
+        y_name = self.ui.yVariableCombo.currentText()
+        y_var = self.get_variable_by_name(y_name)
+
+        if y_var is None or y_var.count() == 0:
+            return
+
+        values = np.asarray(list(y_var.values), dtype=float)
+
+        if values.size == 0:
+            return
+
+        bins_count = self.ui.binsSpin.value()
+        min_value = float(np.min(values))
+        max_value = float(np.max(values))
+
+        if min_value == max_value:
+            x_values = [min_value]
+            heights = [len(values)]
+            width = 1
+        else:
+            edges = np.linspace(min_value, max_value, bins_count + 1)
+            heights, _ = np.histogram(values, bins=edges)
+
+            width = edges[1] - edges[0]
+            x_values = edges[:-1] + width / 2
+
+        bar_graph = pg.BarGraphItem(
+            x=x_values,
+            height=heights,
+            width=width * 0.9,
+            brush="#1F77B4",
+        )
+
+        self.plot_widget.addItem(bar_graph)
