@@ -7,7 +7,7 @@ from typing import Any
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QInputDialog, QTabWidget, QVBoxLayout, QWidget
 
-from gui.views.plots import Plot, LinePlot
+from gui.views.plots import Plot, LinePlot, HistogramPlot
 
 
 class PlotTab:
@@ -44,6 +44,7 @@ class PlotManager:
 
     _PLOT_CLASSES = [
         ("Линия", LinePlot),
+        ('Гистограмма', HistogramPlot),
     ]
 
     def __init__(self, ui) -> None:
