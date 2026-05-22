@@ -88,12 +88,22 @@
      <item row="3" column="0">
       <widget class="QLabel" name="labelWidth">
        <property name="text">
-        <string>Переменная X</string>
+        <string>Толщина</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="xVariableCombo"/>
+     <item row="3" column="1">
+      <widget class="QSpinBox" name="widthSpin">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>10</number>
+       </property>
+       <property name="value">
+        <number>2</number>
+       </property>
+      </widget>
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label">
@@ -118,34 +128,49 @@
      </item>
      <item row="5" column="0" colspan="2">
       <widget class="QTableWidget" name="settingsTable">
-       <column>
+       <row>
         <property name="text">
          <string>Линия</string>
         </property>
-       </column>
-       <column>
+       </row>
+       <row>
         <property name="text">
          <string>Толщина</string>
         </property>
-       </column>
-       <column>
+       </row>
+       <row>
         <property name="text">
          <string>Точки</string>
         </property>
-       </column>
-       <column>
+       </row>
+       <row>
         <property name="text">
          <string>Размер</string>
         </property>
-       </column>
-       <column>
+       </row>
+       <row>
         <property name="text">
          <string>Цвет</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Видимость</string>
+        </property>
+       </row>
+       <column>
+        <property name="text">
+         <string>Длина</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Видимость</string>
+         <string>Ширина</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Высота</string>
         </property>
        </column>
        <item row="0" column="0">

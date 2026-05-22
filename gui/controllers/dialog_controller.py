@@ -136,9 +136,6 @@ class DialogController:
         if not ok:
             return None
 
-        instrument_by_type = {
-            InstrumentKind.ABSOLUTE.value: InstrumentAbsolute,
-            InstrumentKind.RELATIVE.value: InstrumentRelative,
-        }
-        instrument_cls = instrument_by_type[inst_type]
-        return instrument_cls(name, error)
+        if inst_type == InstrumentKind.ABSOLUTE.value:
+            return InstrumentAbsolute(name, error)
+        return InstrumentRelative(name, error)

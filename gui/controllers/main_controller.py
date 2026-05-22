@@ -186,6 +186,10 @@ class MainController:
         self.value_table_model.set_entity("variable", var)
         self.constant_table_model.set_constant(None)
 
+        # Сохраняем выбранную переменную как источник графика.
+        self.window.plot_manager.set_source_variable(var)
+        self.window.plot_manager.refresh_graph()
+
     def _show_constant(self, const: Constant) -> None:
         # Отображение информации о константе в интерфейсе
         self._selected_variable = None
@@ -196,6 +200,9 @@ class MainController:
         ui.valueCount.setText("1")
         self.value_table_model.clear()
         self.constant_table_model.set_constant(const)
+
+        self.window.plot_manager.set_source_variable(None)
+        self.window.plot_manager.refresh_graph()
 
     def _show_instrument(self, inst) -> None:
         # Отображение информации о приборе в интерфейсе
@@ -208,6 +215,9 @@ class MainController:
         self.value_table_model.clear()
         self.constant_table_model.set_constant(None)
 
+        self.window.plot_manager.set_source_variable(None)
+        self.window.plot_manager.refresh_graph()
+
     def _instrument_type_label(self, inst) -> str:
         # Получение текстовой метки типа прибора
         return "абсолютная" if isinstance(inst, InstrumentAbsolute) else "относительная"
@@ -217,4 +227,4 @@ class MainController:
         self._tree.refresh(self.experiment)
         if refresh_instrument_model:
             self.instrument_table_model.refresh()
-        self.window.variableListChanged.emit()
+        self.window.plot_manager.refresh_variable_lists()
